@@ -18,7 +18,6 @@ export let App = class extends DomApp {
             new SimpleNode(
                 this.el('span')
                 .addText('This is a sample console, you can put extra elements here, like this text.')
-                .build()
             )
         );
     }
@@ -26,8 +25,7 @@ export let App = class extends DomApp {
     createDomNode() {
         return this.el('div')
             .addClass(this.className)
-            .addSheet(sheet)
-            .build();
+            .addSheet(sheet);
     }
 
     render() {
@@ -36,23 +34,23 @@ export let App = class extends DomApp {
             this.console,
             (new Grid()).addRows(
                 (new Row()).addColumns(
-                    new Content(new SimpleNode(this.el('h1').addText('JSCore demo').build()))
+                    new Content(new SimpleNode(this.el('h1').addText('JSCore demo')))
                 ),
                 (new Row()).addColumns(
                     new Content(
                         new SimpleNode(this.el('p').addText(`
                             In this demo you can find the builtin console to the left, and a simple Grid system bellow.
-                        `).build())
+                        `))
                     )
                 ),
                 (new Row()).addColumns(
-                    new Content(new SimpleNode(this.el('span').addText('This is a left column').build())),
+                    new Content(new SimpleNode(this.el('span').addText('This is a left column'))),
                     (new Column()).addRows(
                         (new Row()).addColumns(
-                            new Content(new SimpleNode(this.el('span').addText('This is the first row from a second column').build()))
+                            new Content(new SimpleNode(this.el('span').addText('This is the first row from a second column')))
                         ),
                         (new Row()).addColumns(
-                            new Content(new SimpleNode(this.el('span').addText('This is a second row from a second column').build()))
+                            new Content(new SimpleNode(this.el('span').addText('This is a second row from a second column')))
                         )
                     )
                 )

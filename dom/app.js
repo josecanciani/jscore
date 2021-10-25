@@ -25,7 +25,7 @@ export let DomApp = class extends DomNode {
     }
 
     createDomNode() {
-        return this.el('div').addClass(this.className).build();
+        return this.el('div').addClass(this.className);
     }
 
     /**

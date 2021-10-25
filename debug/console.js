@@ -23,8 +23,7 @@ export let Console = class extends DomNode {
             .addChild(this.el('h1').addText('Console'))
             .addChild(this.extraContent.length ? this.el('div').addClass('extraContent') : null)
             .addChild(this.el('div').addClass('messages'))
-            .addSheet(sheet)
-            .build();
+            .addSheet(sheet);
     }
 
     render(parent) {
@@ -93,7 +92,7 @@ export let Console = class extends DomNode {
                 (this.lastAppened && (this.buffer[i].id - this.lastAppened) > 1) ||
                 (!this.lastAppened && this.buffer[i].id > 1)
             ) {
-                const separator = {id: '', content: this.el('span').addText('[ ... ]').build()};
+                const separator = {id: '', content: this.el('span').addText('[ ... ]')};
                 this.logsToClean.push(separator);
                 this._appendLog(messages, separator);
             }
@@ -113,9 +112,8 @@ export let Console = class extends DomNode {
             this.el('div')
                 .addClass('message')
                 .addClass(log.type)
-                .addChild(this.el('span').addClass('number').addText(log.id + ': ').build())
+                .addChild(this.el('span').addClass('number').addText(log.id + ': '))
                 .addChild(this.el('span').addClass('text'))
-                .build()
         );
         log.renderedNode.renderBefore(
             messages.firstChild,
@@ -147,7 +145,7 @@ export let Console = class extends DomNode {
     }
 
     _buildSpanNode(text, child, isError) {
-        return new SimpleNode(this.el('span').addClass('log').addClass(isError ? 'error' : null).addText(text).addChild(child).build());
+        return new SimpleNode(this.el('span').addClass('log').addClass(isError ? 'error' : null).addText(text).addChild(child));
     }
 
     /**

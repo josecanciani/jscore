@@ -2,11 +2,24 @@ import { Emitter } from '../proto/emitter.js';
 import { Builder, Modifier, ShadowElement } from './element.js';
 
 export let DomNode = class extends Emitter {
+    constructor() {
+        super();
+        this.cssSheets = [];
+    }
+
     /**
      * @param {Document} document
      */
     _setDocument(document) {
         this.document = document;
+    }
+
+    /**
+     *
+     * @param {CSSStyleSheet} cssSheet
+     */
+    addCssSheet(cssSheet) {
+        this.cssSheets.push(cssSheet);
     }
 
     /**
@@ -48,7 +61,7 @@ export let DomNode = class extends Emitter {
 
 
     /**
-     * @return {HTMLElement}
+     * @return {Builder}
      */
     createDomNode() {
         throw new Error('notImplemented');
@@ -98,7 +111,9 @@ export let DomNode = class extends Emitter {
      */
     _doRender(parent, beforeChild, ...childs) {
         this.parent = parent;
-        this.domNode = this.createDomNode();
+        let domNodeBuilder = this.createDomNode();
+        this.cssSheets.forEach((sheet) => domNodeBuilder.addSheets(sheet));
+        this.domNode = domNodeBuilder.build();
         this.childs = childs;
         this.childs.forEach((child) => {
             child._setDocument(this.document);

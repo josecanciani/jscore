@@ -35,6 +35,17 @@ export let ShadowElement = class extends HTMLElement {
     }
 };
 
+let TextNode = class {
+    constructor(document, text) {
+        this.document = document;
+        this.text = text;
+    }
+
+    build() {
+        return this.document.createTextNode(this.text);
+    }
+};
+
 export let Builder = class {
     /**
      * A simple builder for DOM elements. Should be available to any {DomNode} class using el() method
@@ -66,15 +77,18 @@ export let Builder = class {
 
     /**
      * Add a child element to this one
-     * @param {HTMLElement} element Can be null for more stylish code when using
+     * @param {Builder} builder Can be null for more stylish code when using
      * @returns {Builder}
      */
-    addChild(element, first) {
-        if (element) {
+    addChild(builder, first) {
+        if (builder) {
+            if (!builder.build) {
+                throw new Error('Only builders are allowed');
+            }
             if (first) {
-                this.childs.unshift(element);
+                this.childs.unshift(builder);
             } else {
-                this.childs.push(element);
+                this.childs.push(builder);
             }
         }
         return this;
@@ -88,9 +102,9 @@ export let Builder = class {
     addText(text, first) {
         if (text) {
             if (first) {
-                this.childs.unshift(this.document.createTextNode(text));
+                this.childs.unshift(new TextNode(this.document, text));
             } else {
-                this.childs.push(this.document.createTextNode(text));
+                this.childs.push(new TextNode(this.document, text));
             }
         }
         return this;
@@ -169,7 +183,7 @@ export let Builder = class {
         if (this.childs.length && this.innerHtml.length) {
             throw new Error('cannotAddHtmlAndChildsElementsAtTheSameTime');
         }
-        this.childs.forEach((child) => el.appendChild(child instanceof Builder ? child.build() : child));
+        this.childs.forEach((child) => el.appendChild(child.build()));
         if (this.innerHtml.length) {
             el.innerHTML = this.innerHtml;
         }
