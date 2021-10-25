@@ -112,7 +112,7 @@ export let DomNode = class extends Emitter {
     _doRender(parent, beforeChild, ...childs) {
         this.parent = parent;
         let domNodeBuilder = this.createDomNode();
-        this.cssSheets.forEach((sheet) => domNodeBuilder.addSheets(sheet));
+        this.cssSheets.forEach((sheet) => domNodeBuilder.addSheet(sheet));
         this.domNode = domNodeBuilder.build();
         this.childs = childs;
         this.childs.forEach((child) => {
