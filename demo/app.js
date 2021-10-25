@@ -1,7 +1,7 @@
-import { DomApp } from '../dom/app.js';
-import { Grid, Row, Column, Content } from '../layout/grid.js';
-import { SimpleNode } from '../dom/simpleNode.js';
-import { ErrorType } from '../debug/console.js';
+import { DomApp } from 'https://cdn.jsdelivr.net/gh/josecanciani/jscore@v0.0.1-alpha/dom/app.js';
+import { Grid, Row, Column, Content } from 'https://cdn.jsdelivr.net/gh/josecanciani/jscore@v0.0.1-alpha/layout/grid.js';
+import { SimpleNode } from 'https://cdn.jsdelivr.net/gh/josecanciani/jscore@v0.0.1-alpha/dom/simpleNode.js';
+import { ErrorType } from 'https://cdn.jsdelivr.net/gh/josecanciani/jscore@v0.0.1-alpha/debug/console.js';
 import sheet from './app.css' assert { type: 'css' };
 
 export let App = class extends DomApp {
