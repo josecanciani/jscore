@@ -173,6 +173,7 @@ export let DomNode = class extends Emitter {
         } else {
             this._parent.appendChild(this._domNode);
         }
+        this.afterRender();
     }
 
     _appendChildren(parent, beforeChild, ...children) {
