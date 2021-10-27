@@ -4,18 +4,18 @@ import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstr
 export let Grid = class extends DomNode {
     /**
      * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
-     * @param {String} className Bootstrap classname
+     * @param {String} classNames Bootstrap classname plus your own (default to "container-fluid")
      */
-    constructor(className) {
+    constructor(...classNames) {
         super();
         this.rows = [];
-        this.className = className || 'container-fluid';
+        this.classNames = classNames.length ? classNames : ['container-fluid'];
     }
 
     createDomNode() {
         return this.el('div')
             .addSheet(sheet)
-            .addClass(this.className);
+            .addClass(...this.classNames);
     }
 
     /**
@@ -27,26 +27,22 @@ export let Grid = class extends DomNode {
         return this;
     }
 
-    /**
-     * @param {Node} parent
-     */
-    render(parent) {
-        super.render(parent, ...this.rows);
+    beforeRender() {
+        this.append(this.getDomNode(), ...this.rows);
     }
 };
 
 export let Row = class extends DomNode {
     /**
-     * @param {String} className Bootstrap classname
+     * @param {String} classNames Bootstrap classname plus your own (default to "row")
      */
-    constructor(className) {
+    constructor(...classNames) {
         super();
         this.columns = [];
-        this.className = className || 'row';
+        this.classNames = classNames.length ? classNames : ['row'];
     }
 
     /**
-     *
      * @param  {...Column} columns
      * @returns {this}
      */
@@ -56,25 +52,22 @@ export let Row = class extends DomNode {
     }
 
     createDomNode() {
-        return this.el('div').addClass(this.className);
+        return this.el('div').addClass(...this.classNames);
     }
 
-    /**
-     * @param {Node} parent
-     */
-    render(parent) {
-        super.render(parent, ...this.columns);
+    beforeRender() {
+        this.append(this.getDomNode(), ...this.columns);
     }
 };
 
 export let Column = class extends DomNode {
     /**
-     * @param {String} className Bootstrap class name
+     * @param {String} classNames Bootstrap class name and your own (defaults to "col-md-auto")
      */
-    constructor(className) {
+    constructor(...classNames) {
         super();
         this.rows = [];
-        this.className = className || 'col-md-auto';
+        this.classNames = classNames.length ? classNames : ['col-md-auto'];
     }
 
     /**
@@ -88,36 +81,30 @@ export let Column = class extends DomNode {
     }
 
     createDomNode() {
-        return this.el('div').addClass(this.className);
+        return this.el('div').addClass(...this.classNames);
     }
 
-    /**
-     * @param {Row} parent
-     */
-    render(parent) {
-        super.render(parent, ...this.rows);
+    beforeRender() {
+        this.append(this.getDomNode(), ...this.rows);
     }
 };
 
 export let Content = class extends DomNode {
     /**
      * @param {NodeNde} child
-     * @param {String} className Bootstrap class name
+     * @param {String} classNames Bootstrap class name or your own (default to "col-md-auto")
      */
-    constructor(child, className) {
+    constructor(child, ...classNames) {
         super();
         this.child = child;
-        this.className = className || 'col-md-auto';
+        this.classNames = classNames.length ? classNames : ['col-md-auto'];
     }
 
     createDomNode() {
-        return this.el('div').addClass(this.className);
+        return this.el('div').addClass(...this.classNames);
     }
 
-    /**
-     * @param {Row} parent
-     */
-    render(parent) {
-        super.render(parent, this.child);
+    beforeRender() {
+        this.append(this.getDomNode(), this.child);
     }
 };

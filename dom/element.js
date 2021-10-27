@@ -56,7 +56,7 @@ export let Builder = class {
     constructor(document, type) {
         this.document = document;
         this.type = type;
-        this.className = [];
+        this.classNames = [];
         this.childs = [];
         this.innerHtml = '';
         this.attributes = [];
@@ -65,13 +65,11 @@ export let Builder = class {
     }
 
     /**
-     * @param {String} className CSS class name for this element
+     * @param {String[]} classNames CSS class names for this element
      * @returns {Builder}
      */
-    addClass(className) {
-        if (className && className.length) {
-            this.className.push(className);
-        }
+    addClass(...classNames) {
+        classNames.forEach((className) => this.classNames.push(className));
         return this;
     }
 
@@ -179,7 +177,7 @@ export let Builder = class {
      */
     build() {
         const el = this.document.createElement(this.type);
-        this.className.forEach((className) => el.classList.add(className));
+        this.classNames.forEach((className) => el.classList.add(className));
         if (this.childs.length && this.innerHtml.length) {
             throw new Error('cannotAddHtmlAndChildsElementsAtTheSameTime');
         }
