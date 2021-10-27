@@ -23,13 +23,12 @@ export let App = class extends DomApp {
     }
 
     createDomNode() {
-        return this.el('div')
-            .addClass(this.className)
-            .addSheet(sheet);
+        return super.createDomNode().addSheet(sheet);
     }
 
-    render() {
-        super.render(
+    beforeRender() {
+        this.append(
+            this.getDomNode(),
             // The console object lifecycle is managed by the parent class
             this.console,
             (new Grid()).addRows(

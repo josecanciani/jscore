@@ -4,14 +4,26 @@ import { Builder, Modifier, ShadowElement } from './element.js';
 export let DomNode = class extends Emitter {
     constructor() {
         super();
-        this.cssSheets = [];
+        this._childrenHWM = 0;
+        this._children = {};
+        this._cssSheets = [];
     }
 
     /**
      * @param {Document} document
      */
-    _setDocument(document) {
+    _attachChild(document, parentNode, id) {
         this.document = document;
+        this._parentNode = parentNode;
+        this._childId = id;
+    }
+
+    _detachChild(childId) {
+        delete this._children[childId];
+    }
+
+    _getChildId() {
+        return this._childId;
     }
 
     /**
@@ -19,7 +31,8 @@ export let DomNode = class extends Emitter {
      * @param {CSSStyleSheet} cssSheet
      */
     addCssSheet(cssSheet) {
-        this.cssSheets.push(cssSheet);
+        this._cssSheets.push(cssSheet);
+        return this;
     }
 
     /**
@@ -68,11 +81,22 @@ export let DomNode = class extends Emitter {
     }
 
     getDomNode() {
-        if (this.domNode instanceof ShadowElement) {
-            return this.domNode.getDomNode();
+        if (this._domNode instanceof ShadowElement) {
+            return this._domNode.getDomNode();
         } else {
-            return this.domNode;
+            return this._domNode;
         }
+    }
+
+    /**
+     * @returns {Node[]} All children nodes
+     */
+    getAllChildren() {
+        let children = [];
+        for (let childId in this._children) {
+            children.push(this._children[childId]);
+        }
+        return children;
     }
 
     /**
@@ -86,12 +110,12 @@ export let DomNode = class extends Emitter {
     }
 
     /**
-     * Render element under parent dom node, aka parent.appendChild()
+     * Render element after another, aka parent.insertBefore()
      * @param {Node} parent
-     * @param  {...DomNode} childs
+     * @param {...DomNode} children
      */
-    render(parent, ...childs) {
-        this._doRender(parent, null, ...childs);
+    append(parent, ...children) {
+        this._appendChildren(parent, null, ...children);
     }
 
     /**
@@ -99,44 +123,66 @@ export let DomNode = class extends Emitter {
      * @param {Node} parent
      * @param  {...DomNode} childs
      */
-    renderBefore(beforeChild, parent, ...childs) {
-        this._doRender(parent, beforeChild, ...childs);
+    appendBefore(parent, beforeChild, ...children) {
+        this._appendChildren(parent, beforeChild, ...children);
     }
 
     /**
-     * Do not call this directly, use render* methods instead
-     * @param {Node} parent
-     * @param {Node} beforeChild
-     * @param  {...DomNode} childs
+     * Use this method to append childs before the node is added to the DOM
      */
-    _doRender(parent, beforeChild, ...childs) {
-        this.parent = parent;
-        let domNodeBuilder = this.createDomNode();
-        this.cssSheets.forEach((sheet) => domNodeBuilder.addSheet(sheet));
-        this.domNode = domNodeBuilder.build();
-        this.childs = childs;
-        this.childs.forEach((child) => {
-            child._setDocument(this.document);
-            child.render(this.getDomNode());
-        });
-        if (beforeChild) {
-            this.parent.insertBefore(this.domNode, beforeChild);
-        } else {
-            this.parent.appendChild(this.domNode);
-        }
+    beforeRender() {
     }
 
+    /**
+     * Use this method to do things after the element added to the DOM
+     */
     afterRender() {
-        this.childs.forEach((child) => child.afterRender());
+        this._children.forEach((child) => child.afterRender());
     }
 
     uninit() {
         super.uninit();
-        this.childs.forEach((child) => child.uninit());
-        this.parent.removeChild(this.domNode);
-        delete this.childs;
-        delete this.domNode;
-        delete this.parent;
+        this._children.forEach((child) => child.uninit());
+        if (this._domNode) {
+            this._parent.removeChild(this._domNode);
+        }
+        this._parentNode._detachChild(this._getChildId());
+        delete this._children;
+        delete this._domNode;
+        delete this._parent;
+        delete this._parentNode;
+
+    }
+
+    /**
+     * Do not call this directly, use beforeRender/afterRender and append/appendBefore
+     * @param {Node} parent
+     * @param {Node} beforeChild
+     * @param  {...DomNode} children
+     */
+    _render(parent, beforeChild, ...children) {
+        this._parent = parent;
+        let domNodeBuilder = this.createDomNode();
+        this._cssSheets.forEach((sheet) => domNodeBuilder.addSheet(sheet));
+        this._domNode = domNodeBuilder.build();
+        this._children = [];
+        this._appendChildren(this.getDomNode(), null, ...children);
+        this.beforeRender();
+        if (beforeChild) {
+            this._parent.insertBefore(this._domNode, beforeChild);
+        } else {
+            this._parent.appendChild(this._domNode);
+        }
+    }
+
+    _appendChildren(parent, beforeChild, ...children) {
+        children.forEach((child) => {
+            this._childrenHWM++;
+            let childId = String(this._childrenHWM);
+            this._children[childId] = child;
+            child._attachChild(this.document, this, childId);
+            child._render(parent, beforeChild);
+        });
     }
 };
 
@@ -148,8 +194,8 @@ let ChildPositioner = class extends DomNode {
      */
     constructor(child, selectorQuery) {
         super();
-        this.child = child;
-        this.selectorQuery = selectorQuery;
+        this._child = child;
+        this._selectorQuery = selectorQuery;
     }
 
     /**
@@ -158,7 +204,7 @@ let ChildPositioner = class extends DomNode {
      * @returns {HTMLElement}
      */
     $query(path) {
-        return this.child.querySelector(path);
+        return this._child.querySelector(path);
     }
 
     /**
@@ -167,33 +213,40 @@ let ChildPositioner = class extends DomNode {
      * @returns {Modifier}
      */
     $$(path) {
-        return this.child.$$(path);
+        return this._child.$$(path);
     }
 
     /**
      * @param {HTMLElement} parent
-     * @param {...DomNode} childs
+     * @param {...DomNode} children
      */
-    render(parent, ...childs) {
+    _render(parent, beforeChild, ...children) {
         let parentDomNode = parent instanceof ShadowElement ? parent.getDomNode() : parent;
-        let wrappedParent = parentDomNode.querySelector(this.selectorQuery);
+        let wrappedParent = parentDomNode.querySelector(this._selectorQuery);
         if (!wrappedParent) {
-            throw new Error('parentNotFound: ' + this.selectorQuery);
+            throw new Error('parentNotFound: ' + this._selectorQuery);
         }
-        this.child.render(wrappedParent, ...childs);
+        this._child._render(wrappedParent, beforeChild, ...children);
+    }
+
+    beforeRender() {
+        this._child.beforeRender();
     }
 
     afterRender() {
-        this.child.afterRender();
+        this._child.afterRender();
     }
 
-    _setDocument(document) {
-        this.child._setDocument(document);
+    _attachChild(document, parentNode, childId) {
+        this._child._attachChild(document, parentNode, childId);
+    }
+
+    _getChildId() {
+        return this._child._getChildId();
     }
 
     uninit() {
-        this.child.uninit();
-        delete this.child;
-        super.uninit();
+        this._child.uninit();
+        delete this._child;
     }
 };
