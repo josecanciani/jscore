@@ -14,7 +14,7 @@ export let App = class extends DomApp {
      */
     constructor(doc, parent, cssClass, storage) {
         super(doc || document, parent || document.body, cssClass || 'jscoreDemo', storage || window.localStorage);
-        this.console.addExtraContent(
+        this.getConsole().addExtraContent(
             new SimpleNode(
                 this.el('span')
                 .addText('This is a sample console, you can put extra elements here, like this text.')
@@ -30,7 +30,7 @@ export let App = class extends DomApp {
         this.append(
             this.getDomNode(),
             // The console object lifecycle is managed by the parent class
-            this.console,
+            this.getConsole(),
             (new Grid()).addRows(
                 (new Row()).addColumns(
                     new Content(new SimpleNode(this.el('h1').addText('JSCore demo')))
@@ -59,7 +59,7 @@ export let App = class extends DomApp {
 
     afterRender() {
         super.afterRender();
-        this.console.log('This is a warning message', ErrorType.WARNING);
-        this.console.log('This is an error message', ErrorType.ERROR);
+        this.getConsole().log('This is a warning message', ErrorType.WARNING);
+        this.getConsole().log('This is an error message', ErrorType.ERROR);
     }
 };

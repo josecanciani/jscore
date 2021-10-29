@@ -33,7 +33,7 @@ let Message = class extends DomNode {
     }
 
     beforeRender() {
-        this.append(this.getDomNode(), this.changeChildPosition(
+        this.append(this.getDomNode(), this.setChildParent(
             this._messageToDomNode(this.content),
             'span.text'
         ));
@@ -68,7 +68,7 @@ let Message = class extends DomNode {
         const regex = /(?<=\<body\>).*(?=\<\/body\>)/s;
         let m = regex.exec(html);
         let body = m !== null ? m[0] : html;
-        return this.el('div').html(body).build().innerText;
+        return this._domManager.build(this.el('div').html(body)).innerText;
     }
 };
 
@@ -96,7 +96,7 @@ export let Console = class extends DomNode {
     }
 
     beforeRender() {
-        this.append(this.getDomNode(), ...this.extraContent.map((content) => this.changeChildPosition(content, 'div.extraContent')));
+        this.append(this.getDomNode(), ...this.extraContent.map((content) => this.setChildParent(content, 'div.extraContent')));
     }
 
     afterRender() {

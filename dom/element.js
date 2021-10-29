@@ -36,13 +36,12 @@ export let ShadowElement = class extends HTMLElement {
 };
 
 let TextNode = class {
-    constructor(document, text) {
-        this.document = document;
+    constructor(text) {
         this.text = text;
     }
 
-    build() {
-        return this.document.createTextNode(this.text);
+    build(document) {
+        return document.createTextNode(this.text);
     }
 };
 
@@ -53,8 +52,7 @@ export let Builder = class {
      * @param {String} type a dom type (like "div")
      * @param {CSSStyleSheet} sheet a css style sheet to apply to this node
      */
-    constructor(document, type) {
-        this.document = document;
+    constructor(type) {
         this.type = type;
         this.classNames = [];
         this.childs = [];
@@ -100,9 +98,9 @@ export let Builder = class {
     addText(text, first) {
         if (text) {
             if (first) {
-                this.childs.unshift(new TextNode(this.document, text));
+                this.childs.unshift(new TextNode(text));
             } else {
-                this.childs.push(new TextNode(this.document, text));
+                this.childs.push(new TextNode(text));
             }
         }
         return this;
@@ -173,15 +171,16 @@ export let Builder = class {
     }
 
     /**
+     * @param {Document} document
      * @returns {HTMLElement}
      */
-    build() {
-        const el = this.document.createElement(this.type);
+    build(document) {
+        const el = document.createElement(this.type);
         this.classNames.forEach((className) => el.classList.add(className));
         if (this.childs.length && this.innerHtml.length) {
             throw new Error('cannotAddHtmlAndChildsElementsAtTheSameTime');
         }
-        this.childs.forEach((child) => el.appendChild(child.build()));
+        this.childs.forEach((child) => el.appendChild(child.build(document)));
         if (this.innerHtml.length) {
             el.innerHTML = this.innerHtml;
         }

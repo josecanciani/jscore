@@ -15,13 +15,27 @@ export let DomApp = class extends DomNode {
      */
     constructor(document, parent, className, localStorage, customElements, console) {
         super();
-        this.document = document || window.document;
-        this.localStorage = new LocalStorageWrapper(localStorage || window.localStorage);
-        this.customElements = customElements || window.customElements;
-        this.customElements.define('jscore-shadow', ShadowElement);
-        this.console = console || new Console();
-        this._parent = parent || this.document.body;
+        this._document = document || window.document;
+        this._localStorage = new LocalStorageWrapper(localStorage || window.localStorage);
+        this._customElements = customElements || window.customElements;
+        this._customElements.define('jscore-shadow', ShadowElement);
+        this._console = console || new Console();
+        this._parent = parent || this._document.body;
         this._className = className;
+    }
+
+    /**
+     * @returns {LocalStorage}
+     */
+    getLocalStorage() {
+        return this._localStorage;
+    }
+
+    /**
+     * @returns {Console}
+     */
+    getConsole() {
+        return this._console;
     }
 
     createDomNode() {
@@ -32,7 +46,7 @@ export let DomApp = class extends DomNode {
      * Call this method to start your application
      */
     render() {
-        super._render(this._parent);
-        this.console.log('App has been rendered');
+        this._domManager.render(this._document, this._parent);
+        this.getConsole().log('App has been rendered');
     }
 };
