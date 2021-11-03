@@ -22,6 +22,6 @@ The DomNode consists of a DOMElement tree plus -optionally- a set of other DomNo
 
 DomNodes inclues a set of handful methods for buliding the DOMElement tree and append it's children. Here's a very basic application (remember a DomApp is a DomNode too) that renders a simple h1 header:
 
-```javascript:demo/readme/demo1.js
+```js:demo/readme/demo1.js
 
 ```
