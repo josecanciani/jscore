@@ -22,8 +22,14 @@ The DomNode consists of a DOMElement tree plus -optionally- a set of other DomNo
 
 DomNodes inclues a set of handful methods for buliding the DOMElement tree and append it's children. Here's a very basic application (remember a DomApp is a DomNode too) that renders a simple h1 header:
 
-```js:demo/readme/demo1.js
+```javascript:demo/readme/demo1.js
+import { DomApp } from '../../dom/app.js';
 
+export let App = class extends DomApp {
+    createDomNode() {
+        return super.createDomNode().addChild(
+            this.el('h1').addText('This is just a H1 title')
+        );
+    }
+};
 ```
-
-https://github.com/josecanciani/jscore/blob/42ab536b7a1c603a24ef6064314a5a7e04d0d324/demo/readme/demo1.js#L1-L99999
