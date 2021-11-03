@@ -1,5 +1,21 @@
+export let EmitterError = class extends Error {
+    constructor(errors) {
+        super();
+        this.name = 'dispatchEventExceptions';
+        this.description = 'Some listeners throw unexpected exceptions. Check this.errors property.';
+        this.errors = errors;
+    }
 
-export let Emitter = class {
+    stopPropagation() {
+        this._stopPropagation = true;
+    }
+
+    shouldPropagate() {
+        return !this._stopPropagation;
+    }
+};
+
+let Manager = class {
     constructor() {
         // what this object is listening from others
         this._emitterThisListeners = {};
@@ -8,41 +24,43 @@ export let Emitter = class {
     }
 
     /**
-     *
      * @param {Emitter} target
      * @param {String} event
      * @param {function} callback
      */
     addListener(target, event, callback) {
-        if (this._emitterThisListeners[event] && this._emitterThisListeners[event].target == target) {
+        if (this._emitterThisListeners[event] && this._emitterThisListeners[event].target === target) {
             let error = new Error('duplicateListener: ' + event);
             setTimeout(() => { throw error; }, 10);
         }
-        if (!target._emitterListeners[event]) {
-            target._emitterListeners[event] = [];
+        if (!target._emitterManager._emitterListeners[event]) {
+            target._emitterManager._emitterListeners[event] = [];
         }
         this._emitterThisListeners[event] = {
-            index: target._emitterListeners[event].push(callback) - 1,
+            index: target._emitterManager._emitterListeners[event].push(callback) - 1,
             target: target
         };
     }
 
+    /**
+     * @param {Emitter} target
+     * @param {String} event
+     */
     removeListener(target, event) {
-        delete target._emitterListeners[event][this._emitterThisListeners[event]];
+        delete target._emitterManager._emitterListeners[event][this._emitterThisListeners[event]];
         delete this._emitterThisListeners[event];
     }
 
     /**
-     * This method will call all listeners and capture any exception they may throw. Unless specified, exceptions
-     * are thrown later on setTimeout, to avoid breaking code flow.
+     * @param {String} event
      * @returns null|{EmitterError} Call EmitterError.stopPropagation() to avoid throwing the exception
      */
-    dispatchEvent(eventName, ...eventData) {
-        if (!this._emitterListeners || !this._emitterListeners[eventName]) {
+    dispatchEvent(event, ...eventData) {
+        if (!this._emitterListeners || !this._emitterListeners[event]) {
             return;
         }
         let errors = [];
-        this._emitterListeners[eventName].forEach(callback => {
+        this._emitterListeners[event].forEach(callback => {
             try {
                 if (callback) {
                     callback(...eventData);
@@ -62,7 +80,7 @@ export let Emitter = class {
                                     throw childError;
                                 },
                                 10
-                            )
+                            );
                         });
                     }
                 },
@@ -84,19 +102,39 @@ export let Emitter = class {
     }
 };
 
-export let EmitterError = class extends Error {
-    constructor(errors) {
-        super();
-        this.name = 'dispatchEventExceptions';
-        this.description = 'Some listeners throw unexpected exceptions. Check this.errors property.';
-        this.errors = errors;
+export let Emitter = class {
+    constructor() {
+        this._emitterManager = new Manager(this);
     }
 
-    stopPropagation() {
-        this._stopPropagation = true;
+    /**
+     * Add a listener in the target object that Will call callback when dispatching the event
+     * @param {Emitter} target
+     * @param {String} event
+     * @param {function} callback
+     */
+    addListener(target, event, callback) {
+        this._emitterManager.addListener(target, event, callback);
     }
 
-    shouldPropagate() {
-        return !this._stopPropagation;
+    /**
+     * @param {Emitter} target
+     * @param {String} event
+     */
+    removeListener(target, event) {
+        this._emitterManager.removeListener(target, event);
     }
-}
+
+    /**
+     * This method will call all listeners and capture any exception they may throw. Unless specified, exceptions
+     * are thrown later on setTimeout, to avoid breaking code flow.
+     * @returns null|{EmitterError} Call EmitterError.stopPropagation() to avoid throwing the exception
+     */
+    dispatchEvent(event, ...eventData) {
+        this._emitterManager.dispatchEvent(event, ...eventData);
+    }
+
+    uninit() {
+        this._emitterManager.uninit();
+    }
+};
