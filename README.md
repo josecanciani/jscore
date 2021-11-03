@@ -70,12 +70,8 @@ We are dispatching a custom click event everytime this button is pressed. Now le
 ```javascript
     beforeRender() {
         let button = new Button();
-        this.addListener(button, 'click', () => this.onButtonClick())
+        this.addListener(button, 'click', () => alert('button has been clicked'))
         this.append(this.getDomNode(), button);
-    }
-
-    onButtonClick() {
-        alert('button has been clicked');
     }
 ```
 
