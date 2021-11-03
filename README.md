@@ -25,3 +25,5 @@ DomNodes inclues a set of handful methods for buliding the DOMElement tree and a
 ```js:demo/readme/demo1.js
 
 ```
+
+https://github.com/josecanciani/jscore/blob/42ab536b7a1c603a24ef6064314a5a7e04d0d324/demo/readme/demo1.js#L1-L99999
