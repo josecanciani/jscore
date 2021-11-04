@@ -202,7 +202,7 @@ export let Modifier = class {
      * @param {HTMLElement} el
      */
     constructor(el) {
-        this.el = el;
+        this.element = el;
     }
 
     /**
@@ -211,7 +211,7 @@ export let Modifier = class {
      * @returns {Modifier}
      */
     attr(name, value) {
-        this.el.setAttribute(name, value);
+        this.element.setAttribute(name, value);
         return this;
     }
 
@@ -220,7 +220,7 @@ export let Modifier = class {
      * @returns {Modifier}
      */
     value(value) {
-        this.el.value = value;
+        this.element.value = value;
         return this;
     }
 
@@ -230,9 +230,9 @@ export let Modifier = class {
      */
     hide(hide) {
         if (hide) {
-            this.el.setAttribute('hidden', true);
+            this.element.setAttribute('hidden', true);
         } else {
-            this.el.removeAttribute('hidden');
+            this.element.removeAttribute('hidden');
         }
         return this;
     }
@@ -242,7 +242,7 @@ export let Modifier = class {
      * @returns {Modifier}
      */
     enable(enable) {
-        this.el.disabled = !enable;
+        this.element.disabled = !enable;
         return this;
     }
 
@@ -251,6 +251,6 @@ export let Modifier = class {
      * @returns {HTMLElement} the elemennt that's being modified
      */
     el() {
-        return this.el;
+        return this.element;
     }
 };
