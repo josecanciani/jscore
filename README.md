@@ -65,7 +65,9 @@ let Button = class extends DomNode {
 }
 ```
 
-We are dispatching a custom click event everytime this button is pressed. Now let's add it to our NodeApp application, and listen it. We are going to use the `beforeRender()` method to append a new child:
+Notice we are using the Element Builder's `listen` (which translates to a DOMElement `addEventListener`), but we are in turn dispatching a custom 'click' event.
+
+Now let's add it to our NodeApp application, and listen for this custom click. We are going to use the `beforeRender()` method to append a new child, and when a click event is recieved, we will open an alert window.
 
 ```javascript
     beforeRender() {
@@ -77,11 +79,27 @@ We are dispatching a custom click event everytime this button is pressed. Now le
 
 Test live: [https://codepen.io/josecanciani/pen/abyERVX](https://codepen.io/josecanciani/pen/abyERVX)
 
+#### Parameters
+
+The `dispatchEvent` method accepts an arbitrary number of parameters that will be passed to the callback when called:
+
+```javascript
+    this.dispatchEvent('myEvent', par1, par2, ...parN);
+    /* ... */
+    this.addListener(myObj, 'myEvent', (par1, par2, ...parN) => /* ... */);
+```
+
 #### Life cycle
 
 If you add a listener, you should remove it before trying to `uninit` the target object. If you don't do this, an exception will be thrown (but it will not break the flow). This is in place so that the engine can warn you about a possible race condition error.
 
 You can only add one listener type per object (ie: you cannot add two `click` event listeners from the same object to the same target). This will also avoid race condition situations, mandating the developer to properly handle both together.
+
+#### Error handling
+
+When calling `dispatchEvent` the engine will run all registered callbacks and catch any error they may throw. If any arror is catched, the return value will be a `EmitterError` error object containing the list of errors.
+
+By default, errors will be thrown later in the event loop, but you can avoid that if you deal with them by calling the `stopPropagation()` method of the returned error object.
 
 ### Positioning a child
 

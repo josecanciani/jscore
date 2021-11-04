@@ -75,24 +75,26 @@ let Manager = class {
         });
         if (errors.length) {
             let error = new EmitterError(errors);
-            setTimeout(
-                () => {
-                    if (error.shouldPropagate()) {
-                        error.errors.forEach((childError) => {
-                            setTimeout(
-                                () => {
-                                    throw childError;
-                                },
-                                10
-                            );
-                        });
-                    }
-                },
-                10
-            );
+            setTimeout(() => this._propagateErrors(error), 10);
             return error;
         }
         return null;
+    }
+
+    /**
+     * @param {EmitterError} error
+     */
+    _propagateErrors(error) {
+        if (error.shouldPropagate()) {
+            error.errors.forEach((childError) => {
+                setTimeout(
+                    () => {
+                        throw childError;
+                    },
+                    10
+                );
+            });
+        }
     }
 
     uninit() {
