@@ -55,12 +55,12 @@ Let's create a new DomNode, containing a button that we can listen from our app:
 ```javascript
 let Button = class extends DomNode {
     createDomNode() {
-        return this.el('button').addText('click me').listen('click', (event) => this.onClick(event));
-    }
-
-    onClick(event) {
-        event.preventDefault();
-        this.dispatchEvent('click');
+        return this.el('button')
+            .addText('click me')
+            .listen('click', (event) => {
+                event.preventDefault();
+                this.dispatchEvent('click');
+            });
     }
 }
 ```
@@ -77,15 +77,99 @@ We are dispatching a custom click event everytime this button is pressed. Now le
 
 Test live: [https://codepen.io/josecanciani/pen/abyERVX](https://codepen.io/josecanciani/pen/abyERVX)
 
+#### Life cycle
+
+If you add a listener, you should remove it before trying to `uninit` the target object. If you don't do this, an exception will be thrown (but it will not break the flow). This is in place so that the engine can warn you about a possible race condition error.
+
+You can only add one listener type per object (ie: you cannot add two `click` event listeners from the same object to the same target). This will also avoid race condition situations, mandating the developer to properly handle both together.
+
 ### Positioning a child
 
-TODO
+Having one class per HTMLElement would be a nightmare, so a DomNode can render a tree of elements. Some times you want a child to be render under a specific node. For this case, we have the handy `setChildParent` method.
 
-### Removing a child
+In this example we add a table with two cells in our app:
 
-TODO
+```javascript
+    createDomNode() {
+        return this.el('table').addChild(
+            this.el('tr')
+                .addChild(this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
+                .addChild(this.el('td').addClass('right'))
+        );
+     }
+```
+
+And now, when appending our child, we will use the `setChildParent` method, which is chainable, so you can just do:
+
+```javascript
+    beforeRender() {
+        this.append(
+            this.getDomNode(),
+            this.setChildParent(new Button(), 'td.left')
+        );
+    }
+```
+
+Test live: [https://codepen.io/josecanciani/pen/VwzQYjQ](https://codepen.io/josecanciani/pen/VwzQYjQ)
+
+### Children life cycle: add and remove
+
+We already saw how to append a child, but there's another method call `appendBefore` that follows the native `insertBefore` method and allows to add an element before another.
+
+Both methods supports multiple child in the parameter, you can just add several in one command: `this.append(this.getDomNode(), child1, child2, ..., childN)`.
+
+You may also notice that the append methods receive a DomElement, which will usually be the main dom element of our object (the one created by the `createDomNode` method). You can specify any other element (see Element Selector to find them), but usually you will use the `setChildParent` method to specify it.
+
+Removing a child is as simple as calling it's `uninit` method. Let's modify our app to "toogle" our button between the two table cells:
+
+```javascript
+    beforeRender() {
+        this._toogleButton('td.left', 'td.right');
+    }
+
+    _toogleButton(from, to) {
+        this._uninitPreviousButton();
+        this.button = new Button();
+        this.addListener(this.button, 'click', () => this._toogleButton(to, from));
+        this.append(this.getDomNode(), this.setChildParent(this.button, from));
+    }
+
+    _uninitPreviousButton() {
+        if (this.button) {
+            this.removeListener(this.button, 'click');
+            this.button.uninit();
+        }
+    }
+
+    uninit() {
+        this._uninitPreviousButton();
+        super.uninit();
+    }
+```
+
+Test Live: [https://codepen.io/josecanciani/pen/mdMpzJb](https://codepen.io/josecanciani/pen/mdMpzJb)
+
+As you can see, everytime the user clicks the button, we are removing it from the DOM by just calling it's `uninit` method. The jscore engine will take care of checking dependencies (that's why we have to remove the listener first). Then we just create a new one, this time within the other table cell.
 
 ### beforeRender vs afterRender
+
+When rendering a node, there are two oportunities to add children nodes: `beforeRender` and `afterRender`.
+
+The differences lies in at what point the dom elements are inserted into the parent nodes. When using `beforeRender`, the nodes are added to the the object's element tree at a point when this tree is still NOT in the browser's DOM. `afterRender`, in contrast, is executed once the element tree has been added to the browser's DOM.
+
+You will almost always use `beforeRender`, so that all the tree is added at once, which should be faster and won't produce browser hiccups.
+
+But there are some situation when you do need the elment inside the DOM, like when using an external Chart library that depends on a container to be already rendered in the browser.
+
+### Element Builder: `this.el()`
+
+TODO
+
+### Element Modifier: `this.$()`
+
+TODO
+
+### Element Selector: `this.$query()` & `this.$$()`
 
 TODO
 
