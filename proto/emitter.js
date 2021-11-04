@@ -47,7 +47,11 @@ let Manager = class {
      * @param {String} event
      */
     removeListener(target, event) {
-        delete target._emitterManager._emitterListeners[event][this._emitterThisListeners[event]];
+        target._emitterManager._emitterListeners[event][this._emitterThisListeners[event].index] = null;
+        if (!target._emitterManager._emitterListeners[event].filter((e) => e !== null).length) {
+            // cleanup when there's no one left, so we can alert when uninint later
+            delete target._emitterManager._emitterListeners[event];
+        }
         delete this._emitterThisListeners[event];
     }
 

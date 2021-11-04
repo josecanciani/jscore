@@ -47,7 +47,7 @@ let ChildManager = class {
     }
 
     uninit() {
-        this._children.forEach((child) => child.uninit());
+        this.getAllChildren().forEach((child) => child.uninit());
         delete this._children;
         delete this._parent;
     }
