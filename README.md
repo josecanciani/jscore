@@ -181,16 +181,37 @@ But there are some situation when you do need the elment inside the DOM, like wh
 
 ### Element Builder: `this.el()`
 
-TODO
+The `el()` method of a `DomNode` object returns a `Builder` (`dom/element.js`) object that can be used to create new dom elements.
+
+Most attributes can be set with the `attr` method, as we want to keep browser impleentation as much as possible.
+
+You can create a shadow element using the `addSheet` method, but this is only recommended for the parent node in a `DomNode` tree (see Styling with Shadow Elements bellow).
+
+You can add HTML but it's not recommended, instead keep using new Builders to create your tree, appending with the `addChild` method.
+
+The `addText` method allows to insert a Text Node as a child.
+
+The `listen` method will add dom listeners using the browser's `addEventListener`.
+
 
 ### Element Modifier: `this.$()`
 
-TODO
+The `this.$()` method takes an HTMLElement and returns a Modifier object that allows you to manipulate it. Use this instead of using Browser's specific ways.
+
+It has similar functions as the `Builder` object, but is focused on already rendered objects.
+
+Most handy methods are `enable()` and `hide()`. Again, anything that can be achieved with the builtin `setAttribute` method should use `attr()`, but for others that requires some tweaks (like `hide()`), we implement a custom method.
 
 ### Element Selector: `this.$query()` & `this.$$()`
 
-TODO
+`this.$query(path)` will run the builtin `querySelector` method over the main DOM element (the one created with `createDomNode()`). This is useful to get rendered elements to work with in your class.
+
+The `$$` method is a shortcut to `this.$(this.$query(path))`.
 
 ### The builtin console
+
+TODO
+
+### Styling with Shadow Elements
 
 TODO
