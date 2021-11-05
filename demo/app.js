@@ -1,8 +1,7 @@
 import { DomApp } from '../dom/app.js';
-import { Grid, Row, Column, Content } from '../layout/grid.js';
+import { Row, Column, Content } from '../layout/grid.js';
 import { SimpleNode } from '../dom/simpleNode.js';
 import { ErrorType } from '../debug/console.js';
-import sheet from './app.css' assert { type: 'css' };
 
 export let App = class extends DomApp {
     /**
@@ -12,8 +11,9 @@ export let App = class extends DomApp {
      * @param {String} cssClass
      * @param {LocalStorage} storage
      */
-    constructor(doc, parent, cssClass, storage) {
-        super(doc || document, parent || document.body, cssClass || 'jscoreDemo', storage || window.localStorage);
+    constructor(sheet, console, grid) {
+        super(null, null, 'jscoreDemo', null, null, console, sheet);
+        this.grid = grid;
         this.getConsole().addExtraContent(
             new SimpleNode(
                 this.el('span')
@@ -22,16 +22,12 @@ export let App = class extends DomApp {
         );
     }
 
-    createDomNode() {
-        return super.createDomNode().addSheet(sheet);
-    }
-
     beforeRender() {
         this.append(
             this.getDomNode(),
             // The console object lifecycle is managed by the parent class
             this.getConsole(),
-            (new Grid()).addRows(
+            this.grid.addRows(
                 (new Row()).addColumns(
                     new Content(new SimpleNode(this.el('h1').addText('JSCore demo')))
                 ),

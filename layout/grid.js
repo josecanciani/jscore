@@ -1,20 +1,21 @@
 import { DomNode } from '../dom/node.js';
-import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap-grid.min.css' assert { type: 'css' };
 
 export let Grid = class extends DomNode {
     /**
      * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
+     * @param {CSSStyleSheet} Bootstrap style sheet, we are not importing it here to support older browsers
      * @param {String} classNames Bootstrap classname plus your own (default to "container-fluid")
      */
-    constructor(...classNames) {
+    constructor(sheet, ...classNames) {
         super();
+        this.sheet = sheet;
         this.rows = [];
         this.classNames = classNames.length ? classNames : ['container-fluid'];
     }
 
     createDomNode() {
         return this.el('div')
-            .addSheet(sheet)
+            .addSheet(this.sheet)
             .addClass(...this.classNames);
     }
 

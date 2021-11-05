@@ -1,4 +1,3 @@
-import { Console } from '../debug/console.js';
 import { DomNode } from './node.js';
 import { LocalStorageWrapper } from '../db/localStorage.js';
 import { ShadowElement } from './element.js';
@@ -12,16 +11,18 @@ export let DomApp = class extends DomNode {
      * @param {LocalStorage} localStorage
      * @param {CustomElementRegistry} customElements
      * @param {Console} console The console is not added automatically to the DOM, do that when extending this class if needed
+     * @param {CSSStyleSheet} sheet
      */
-    constructor(document, parent, className, localStorage, customElements, console) {
+    constructor(document, parent, className, localStorage, customElements, console, sheet) {
         super();
         this._document = document || window.document;
         this._localStorage = new LocalStorageWrapper(localStorage || window.localStorage);
         this._customElements = customElements || window.customElements;
         this._customElements.define('jscore-shadow', ShadowElement);
-        this._console = console || new Console();
+        this._console = console || window.console;
         this._parent = parent || this._document.body;
         this._className = className;
+        this._sheet = sheet;
     }
 
     /**
@@ -39,7 +40,7 @@ export let DomApp = class extends DomNode {
     }
 
     createDomNode() {
-        return this.el('div').addClass(this._className);
+        return this.el('div').addClass(this._className).addSheet(this._sheet);
     }
 
     /**

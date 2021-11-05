@@ -7,7 +7,12 @@ export let ShadowElement = class extends HTMLElement {
     constructor(element, sheets) {
         super();
         let shadow = this.attachShadow({mode: 'open'});
-        shadow.adoptedStyleSheets = sheets || [];
+        let styleSheets = sheets.filter((sheet) => sheet instanceof CSSStyleSheet);
+        if (styleSheets.length) {
+            shadow.adoptedStyleSheets = sheets;
+        }
+        // this is for legacy support, until Constructable StyleSheets are mainstream
+        sheets.filter((sheet) => !(sheet instanceof CSSStyleSheet)).forEach((legacySheet) => shadow.appendChild(legacySheet));
         this.domNode = element;
         shadow.appendChild(element);
     }

@@ -208,10 +208,40 @@ Most handy methods are `enable()` and `hide()`. Again, anything that can be achi
 
 The `$$` method is a shortcut to `this.$(this.$query(path))`.
 
-### The builtin console
 
-TODO
+### CSS Modules (over Shadow Elements): `addSheet()`
 
-### Styling with Shadow Elements
+The engine supports both Constructable StyleSheets and legacy style HTMLElements for backwards compatibilty.
 
-TODO
+When you `addSheet` using the `Builder`, a Shadow Element will be created automatically, and the style will be appeneded to it.
+
+#### Modern version
+
+```javascript
+import sheet from './myModule.css' assert { type: 'css' };
+
+class MyDomNode extends DomNode {
+    createDomNode() {
+        return this.el('div').addSheet(sheet);
+    }
+}
+```
+
+#### Legacy version
+
+You can also use a style element instead, to support browsers that do not implement it:
+
+```javascript
+let style = document.createElement('style');
+```
+
+We provide the tool `tools/cssToJavascriptStyle.js` that converts a css file into a .css.js file that will export a sheet using this method.
+
+You can view `demo/index.legacy.html` to view a working example.
+
+
+### The console
+
+The engine provides a very rudimentary console object (`debug/console.js`), a DomNode that can be included in your page. By default, the DomApp will use the browser's `console.log`, but you can override it.
+
+See the `demo/index.html` for a sample usage.

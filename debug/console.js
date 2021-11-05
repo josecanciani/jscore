@@ -1,6 +1,5 @@
 import { DomNode } from '../dom/node.js';
 import { SimpleNode } from '../dom/simpleNode.js';
-import sheet from './console.css' assert { type: 'css' };
 
 /**
  * Default Message TTL, meassure in number of new messages before removing it from the view
@@ -79,8 +78,9 @@ export let ErrorType = {
 };
 
 export let Console = class extends DomNode {
-    constructor() {
+    constructor(sheet) {
         super();
+        this.sheet = sheet;
         this.count = 0;
         this.buffer = [];
         this.extraContent = [];
@@ -92,7 +92,7 @@ export let Console = class extends DomNode {
             .addChild(this.el('h1').addText('Console'))
             .addChild(this.extraContent.length ? this.el('div').addClass('extraContent') : null)
             .addChild(this.el('div').addClass('messages'))
-            .addSheet(sheet);
+            .addSheet(this.sheet);
     }
 
     beforeRender() {
