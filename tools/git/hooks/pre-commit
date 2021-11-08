@@ -1,0 +1,24 @@
+#!/bin/bash -e
+#
+# Check if legacy CSS files have been generated
+#
+
+# Redirect output to stderr.
+exec 1>&2
+
+GIT_ROOT=`git rev-parse --show-toplevel`
+
+echo "Checking all legacy CSS files have been generated..."
+
+if [ ! -d "$GIT_ROOT" ];
+then
+    echo "ERROR: cannot detect project path"
+fi
+
+git diff --cached --name-only  | while read FILE;
+do
+
+done
+
+
+exit 1
