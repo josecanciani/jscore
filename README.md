@@ -12,6 +12,10 @@ A collection of Javascript modules to build dynamic DOM-based apps.
 
 Some of the concepts are re-interpretations using new standards of [Avature](https://wwww.avature.net) Main App javascript framework. Avature's framework was built at the beginning of Web 2.0, and there were not many alternatives around.
 
+## Development
+
+There's a GIT pre-commit hook in `tools/git/hooks/pre-commit` that we recommend you link in your project. This hook will prevent from committing changes when it finds differences between CSS files and its legacy counter-parts. See section "CSS Modules" bellow for more information.
+
 ## Tutorial
 
 Any app must extend from `dom/app.js`'s DomApp class. A DomApp is a special type of DomNode that has the `render()` method to draw itself. This is usually how you kick off your app.

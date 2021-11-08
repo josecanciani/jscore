@@ -1,7 +1,6 @@
 #!/bin/bash
-#
-# Check if legacy CSS files have been generated
-#
+
+## Check if legacy CSS files have been generated
 
 # Redirect output to stderr.
 exec 1>&2
@@ -28,7 +27,7 @@ do
         LOCAL_ERROR=1
     fi
     TEMP_FILE=$(mktemp)
-    (cd ${GIT_ROOT} && tools/cssToJavascriptStyle.js ${FILE} > ${TEMP_FILE})
+    (cd ${GIT_ROOT} && tools/cssToJavascriptStyle.sh ${FILE} > ${TEMP_FILE})
     diff ${LEGACY_CSS_FILE} ${TEMP_FILE} > /dev/null
     if [ $? -ne 0 ]
     then
@@ -48,4 +47,5 @@ then
     echo "# All legacy CSS files seem OK."
 fi
 
+exit 1
 exit $ERROR
