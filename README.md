@@ -12,6 +12,10 @@ A collection of Javascript modules to build dynamic DOM-based apps.
 
 Some of the concepts are re-interpretations using new standards of [Avature](https://wwww.avature.net) Main App javascript framework. Avature's framework was built at the beginning of Web 2.0, and there were not many alternatives around.
 
+## Demo
+
+See a working Demo at https://josecanciani.github.io/jscore/demo/index.html
+
 ## Development
 
 There's a GIT pre-commit hook in `tools/git/hooks/pre-commit` that we recommend you link in your project. This hook will prevent from committing changes when it finds differences between CSS files and its legacy counter-parts. See section "CSS Modules" bellow for more information.
