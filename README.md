@@ -25,9 +25,9 @@ There's a GIT pre-commit hook in `tools/git/hooks/pre-commit` that we recommend 
 
 ### A DomApp
 
-Any app must extend the `DomApp` class (`dom/app.js`). A `DomApp` is a special type of `DomNode` that has the `render()` method to draw itself. This is usually how you kick off your app.
+Any application must extend the `DomApp` class (`dom/app.js`). A `DomApp` is a special type of `DomNode` that has the `render()` method to draw itself. This is usually how you kick off your app.
 
-You can include the your App and run it on any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
+You can include your `DomApp` and run it inside any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
 
 ```html
         <script type="module">
