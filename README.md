@@ -1,16 +1,17 @@
 # jscore
 
-A collection of Javascript modules to build dynamic DOM-based apps.
+A collection of Javascript modules to build single page apps.
 
 ## Objectives
 
-* Use latest standards at expense of browser support
+* Use latest standards (at expense of browser support if needed)
+  * This includes `import` modules (both js and css) and the use of Shadow Elements for component style isolation.
 * Provide basic framework-like functionality to build apps
 * Manage object life-cycle automatically
 
 ## Inspiration
 
-Some of the concepts are re-interpretations using new standards of [Avature](https://wwww.avature.net) Main App javascript framework. Avature's framework was built at the beginning of Web 2.0, and there were not many alternatives around.
+Some of the concepts are re-interpretations using new standards of [Avature](https://wwww.avature.net) Main App Javascript framework. Avature's framework was built at the beginning of Web 2.0, and there were not many alternatives around.
 
 ## Demo
 
@@ -22,9 +23,11 @@ There's a GIT pre-commit hook in `tools/git/hooks/pre-commit` that we recommend 
 
 ## Tutorial
 
-Any app must extend from `dom/app.js`'s DomApp class. A DomApp is a special type of DomNode that has the `render()` method to draw itself. This is usually how you kick off your app.
+### A DomApp
 
-You can include the app and run it on any node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
+Any app must extend the `DomApp` class (`dom/app.js`). A `DomApp` is a special type of `DomNode` that has the `render()` method to draw itself. This is usually how you kick off your app.
+
+You can include the your App and run it on any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
 
 ```html
         <script type="module">
@@ -35,11 +38,19 @@ You can include the app and run it on any node, but you will usually use the `bo
 
 ### A DomNode
 
-A DomNode is the object representation of a group of DOM elements, encapsulating its behavior.
+A DomNode is the object representation of a group of DOM elements, encapsulating its behavior. You can also think of it as a Component in other JS frameworks.
 
-The DomNode consists of a DOMElement tree plus -optionally- a set of other DomNode children. Each child is added and references are kept internally for removing dependencies later and allowing for proper garbage collection.
+The DomNode consists of a DOMElement tree plus -optionally- a set of other DomNode children. Each child is added and references are kept internally for removing dependencies later and allowing for accurate garbage collection.
 
-DomNodes includes a set of handful methods for building the DOMElement tree and append its children. Here's a very basic application (remember a DomApp is a DomNode too) that renders a simple h1 header.
+DomNodes includes a set of handful methods for building the DOMElement tree and append its children.
+
+#### `createDomNode`
+
+The main method for building your node is the `createDomNode`, which sould return an HTML `Element` (more on this later, for now just know that you create HTML elements with the handful `el` method). 
+
+This method will usually be used to create the basic DOM tree that your component will use.
+
+Here's a very basic application (remember a DomApp is a DomNode too) that renders a simple h1 header.
 
 ```javascript
 import { DomApp } from '../../dom/app.js';
@@ -54,9 +65,19 @@ export let App = class extends DomApp {
 ```
 Test live: [https://codepen.io/josecanciani/pen/dyzJgWB](https://codepen.io/josecanciani/pen/dyzJgWB)
 
-### Emitter class: custom events
+#### `beforeRender` vs `afterRender`
 
-`proto/Emitter.js`'s Emitter is a base class that provides a pub/sub-like functionality for objects. All DomNodes extend from Emitter, so you can listen and dispatch custom events from any of them.
+When rendering a node, there are two opportunities to add children `DomNode`s: `beforeRender` and `afterRender`.
+
+The difference lies in at what point the dom elements are inserted into the parent nodes. When using `beforeRender`, the nodes are added to the the object's element tree at a point when this tree is still **not** in the browser's DOM. `afterRender`, in contrast, is executed once the element tree has been added to the browser's DOM.
+
+You will almost always use `beforeRender` so that all the tree is added at once, which should be faster and won't produce browser hiccups. But there is a situation when you do need the element inside the DOM, like when using an external Chart library that depends on a container to be already rendered in the browser.
+
+Adding children can be done with the `append` and `appendBefore` methods. They will be added inside your main DOM Element (the one returned in the `createDomNode` method. See bellow on how to position children into other parts of the tree.
+
+### Events: the Emitter class
+
+`Emitter` (from `proto/Emitter.js`) is a base class that provides a pub/sub-like functionality for objects. All DomNodes extend from Emitter, so you can listen and dispatch custom events from any of them.
 
 Let's create a new DomNode, containing a button that we can listen to from our app:
 
@@ -73,9 +94,9 @@ let Button = class extends DomNode {
 }
 ```
 
-Notice we are using the Element Builder's `listen` (which translates to a DOMElement `addEventListener`), but we are in turn dispatching a custom 'click event.
+Notice we are using the element `Builder` method `listen` (which translates to a DOMElement `addEventListener`) -more on building DOM elements later-. In turn dispatching a custom `click` event.
 
-Now let's add it to our NodeApp application, and listen for this custom click. We are going to use the `beforeRender()` method to append a new child, and when a click event is received, we will open an alert window.
+Now let's add this button in our application. We'll add a listener for this custom `click` event. We are going to use the `beforeRender()` method to append a new `DomNode` child, and when a click event is received, we will open an alert window.
 
 ```javascript
     beforeRender() {
@@ -99,7 +120,7 @@ The `dispatchEvent` method accepts an arbitrary number of parameters that will b
 
 #### Life cycle
 
-If you add a listener, you should remove it before trying to `uninit` the target object. If you don't do this, an exception will be thrown (but it will not break the flow). This is in place so that the engine can warn you about a possible race condition error.
+If you add a listener, you should remove it before trying to `uninit` the target object. If you don't do this, an exception will be thrown (but it will not break the flow to reduce the possibility of breaking the app). This is in place so that the framework can warn you about poorly manage object life cycles. If you create an object, you are expected to remove it (not only to avoid references that makes garbage collection impossible, but also so you can trust any uninit code you add is always executed).
 
 You can only add one listener type per object (ie: you cannot add two `click` event listeners from the same object to the same target). This will also avoid race condition situations, mandating the developer to properly handle both together.
 
@@ -111,21 +132,23 @@ By default, errors will be thrown later in the event loop, but you can avoid tha
 
 ### Positioning a child
 
-Having one class per HTMLElement would be a nightmare, so a DomNode can render a tree of elements. Sometimes you want a child to be rendered under a specific node. For this case, we have the handy `setChildParent` method.
+Having one `HTMLElement` per `DomNode` class would be a nightmare of classes, so a `DomNode` can render a tree of elements. This tree is created in the `createDomNode` method.
 
-In this example we add a table with two cells in our app:
+Sometimes you want a `DomNode` child added. This is usually done in the `beforeRender` method, but sometimes you want to render it under a specific element node. For this situation we have the handy `setChildParent` method. In this example we add a basic HTML Table where we will later render other `DomNode`s in its cells:
 
 ```javascript
     createDomNode() {
         return this.el('table').addChild(
-            this.el('tr')
-                .addChild(this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
-                .addChild(this.el('td').addClass('right'))
+            this.el('tr').addChild(
+                this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
+            .addChild(
+                this.el('td').addClass('right')
+            )
         );
      }
 ```
 
-And now, when appending our child, we will use the `setChildParent` method, which is chainable, so you can just do:
+And now we use the `beforeRender` to append our child, but we wrap it using the `setChildParent` method -which is also chainable- in order to indicate insdie which element it should be placed:
 
 ```javascript
     beforeRender() {
@@ -140,13 +163,15 @@ Test live: [https://codepen.io/josecanciani/pen/VwzQYjQ](https://codepen.io/jose
 
 ### Children life cycle: add and remove
 
-We already saw how to append a child, but there's another method called `appendBefore` that follows the native `insertBefore` method and allows to add an element before another.
+We already saw how to append a child, but there's another method called `appendBefore` that follows the native `insertBefore` browser method and allows to add an element before another.
 
-Both methods supports multiple child in the parameter, you can just add several in one command: `this.append(this.getDomNode(), child1, child2, ..., childN)`.
+Both methods supports multiple children in the parameter, you can just add several in one command: `this.append(this.getDomNode(), child1, child2, ..., childN)`.
 
-You may also notice that the append methods receive a DomElement, which will usually be the main dom element of our object (the one created by the `createDomNode` method). You can specify any other element (see Element Selector), but usually, you will use the `setChildParent` method to specify it.
+You may also notice that the append methods receive a DomElement, which will usually be the main dom element of our object (the one created by the `createDomNode` method). You can specify any other element (see `Element` selector methods bellow), but usually you will just use the `setChildParent` method to specify it.
 
-Removing a child is as simple as calling it's `uninit` method. Let's modify our app to "toogle" our button between the two table cells:
+Removing a child is as simple as calling it's `uninit` method.
+
+Let's use our previous HTML Table example and this time we will "toogle" our button between the two table cells:
 
 ```javascript
     beforeRender() {
@@ -175,17 +200,7 @@ Removing a child is as simple as calling it's `uninit` method. Let's modify our 
 
 Test Live: [https://codepen.io/josecanciani/pen/mdMpzJb](https://codepen.io/josecanciani/pen/mdMpzJb)
 
-As you can see, every time the user clicks the button, we are removing it from the DOM by just calling it's `uninit` method. The engine will take care of checking dependencies (that's why we have to remove the listener first). Then we just create a new one, this time within the other table cell.
-
-### beforeRender vs afterRender
-
-When rendering a node, there are two opportunities to add children nodes: `beforeRender` and `afterRender`.
-
-The difference lies in at what point the dom elements are inserted into the parent nodes. When using `beforeRender`, the nodes are added to the the object's element tree at a point when this tree is still NOT in the browser's DOM. `afterRender`, in contrast, is executed once the element tree has been added to the browser's DOM.
-
-You will almost always use `beforeRender` so that all the tree is added at once, which should be faster and won't produce browser hiccups.
-
-But there is a situation when you do need the element inside the DOM, like when using an external Chart library that depends on a container to be already rendered in the browser.
+As you can see, every time the user clicks the button, we are removing it from the DOM by just calling it's `uninit` method. The engine will take care of checking dependencies (that's why we have to remove the listener first, to avoid an exception). Then we just create a new one, this time within the other table cell (notice how we switch `from` and `to`).
 
 ### Element Builder: `this.el()`
 
