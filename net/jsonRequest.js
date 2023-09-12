@@ -14,7 +14,7 @@ export let JsonRequest = class {
         this.headers = headers;
     }
 
-    async get() {
+    async doGet() {
         let response;
         try {
             response = await fetch(this.url, {headers: this.headers || {}});
@@ -30,6 +30,11 @@ export let JsonRequest = class {
         if (response.status !== 200) {
             throw new JsonRequestError('JsonRequestError: got http code ' + response.status);
         }
+        return response;
+    }
+
+    async get() {
+        const response = await this.doGet();
         return await response.json();
     }
 
@@ -44,6 +49,37 @@ export let JsonRequest = class {
         } catch (err) {
             this._timeout = setTimeout(retryCallback, 10000);
             throw err;
+        }
+    }
+
+    async processLine(callback) {
+        const utf8Decoder = new TextDecoder("utf-8");
+        const response = await this.doGet();
+        const reader = response.body.getReader();
+        let { value: chunk, done: readerDone } = await reader.read();
+        chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : "";
+
+        const re = /\r\n|\n|\r/gm;
+        let startIndex = 0;
+
+        for (;;) {
+            const result = re.exec(chunk);
+            if (!result) {
+                if (readerDone) {
+                    break;
+                }
+                let remainder = chunk.substr(startIndex);
+                ({ value: chunk, done: readerDone } = await reader.read());
+                chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : "");
+                startIndex = re.lastIndex = 0;
+                continue;
+            }
+            await callback(chunk.substring(startIndex, result.index));
+            startIndex = re.lastIndex;
+        }
+        if (startIndex < chunk.length) {
+            // last line didn't end in a newline char
+            await callback(chunk.substr(startIndex));
         }
     }
 
