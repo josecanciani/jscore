@@ -1,9 +1,9 @@
-import { DomApp } from '../dom/app.js';
-import { Row, Column, Content } from '../layout/grid.js';
+import { Application } from '../dom/application.js';
+import { Grid, Row, Column, Content } from '../layout/grid.js';
 import { SimpleNode } from '../dom/simpleNode.js';
 import { ErrorType } from '../debug/console.js';
 
-export let App = class extends DomApp {
+export let App = class extends Application {
     /**
      * This is a demo application for josecanciani/jscore module. Arguments of the constructor are here for dependency injection
      * @param {Document} doc
@@ -11,9 +11,8 @@ export let App = class extends DomApp {
      * @param {String} cssClass
      * @param {LocalStorage} storage
      */
-    constructor(sheet, console, grid) {
+    constructor(sheet, console) {
         super(null, null, 'jscoreDemo', null, null, console, sheet);
-        this.grid = grid;
         this.getConsole().addExtraContent(
             new SimpleNode(
                 this.el('span')
@@ -27,7 +26,7 @@ export let App = class extends DomApp {
             this.getDomNode(),
             // The console object lifecycle is managed by the parent class
             this.getConsole(),
-            this.grid.addRows(
+            (new Grid()).addRows(
                 (new Row()).addColumns(
                     new Content(new SimpleNode(this.el('h1').addText('JSCore demo')))
                 ),

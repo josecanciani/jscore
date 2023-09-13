@@ -1,4 +1,4 @@
-import { Component } from '../dom/node.js';
+import { Component } from '../dom/component.js';
 import { SimpleNode } from '../dom/simpleNode.js';
 import sheet from './console.css' assert { type: 'css' };
 

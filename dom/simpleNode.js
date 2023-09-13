@@ -1,4 +1,4 @@
-import { Component } from './node.js';
+import { Component } from './component.js';
 import { Builder } from './element.js';
 
 export let SimpleNode = class extends Component {

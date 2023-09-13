@@ -23,7 +23,7 @@ See a working Demo at https://josecanciani.github.io/jscore/demo/index.html
 
 Any application must extend the `Application` class (`dom/app.js`). A `Application` is a special type of `Component` that has the `render()` method to draw itself. This is usually how you kick off your app.
 
-You can include your `Application` and run it inside any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
+You can include your `Application` and run it inside any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a Application to render).
 
 ```html
         <script type="module">
@@ -100,12 +100,12 @@ Test live: [https://codepen.io/josecanciani/pen/VwzQYjQ](https://codepen.io/jose
 
 ### Events: the Emitter class
 
-`Emitter` (from `proto/Emitter.js`) is a base class that provides a pub/sub-like functionality for objects. All DomNodes extend from Emitter, so you can listen and dispatch custom events from any of them.
+`Emitter` (from `proto/Emitter.js`) is a base class that provides a pub/sub-like functionality for objects. All `Component`s extend from `Emitter`, so you can listen and dispatch custom events from any of them.
 
-Let's create a new DomNode, containing a button that we can listen to from our app:
+Let's create a new component, containing a button that we can listen to from our app:
 
 ```javascript
-let Button = class extends DomNode {
+const Button = class extends Component {
     createDomNode() {
         return this.el('button')
             .addText('click me')
@@ -119,7 +119,7 @@ let Button = class extends DomNode {
 
 Notice we are using the element `Builder` method `listen` (which translates to a DOMElement `addEventListener`) -more on building DOM elements later-. In turn dispatching a custom `click` event.
 
-Now let's add this button in our application. We'll add a listener for this custom `click` event. We are going to use the `beforeRender()` method to append a new `DomNode` child, and when a click event is received, we will open an alert window.
+Now let's add this button in our application. We'll add a listener for this custom `click` event. We are going to use the `beforeRender()` method to append a new `Component` child, and when a click event is received, we will open an alert window.
 
 ```javascript
     beforeRender() {
@@ -194,11 +194,11 @@ As you can see, every time the user clicks the button, we are removing it from t
 
 ### Element Builder: `this.el()`
 
-The `el()` method of a `DomNode` object returns a `Builder` (`dom/element.js`) object that can be used to create new dom elements.
+The `el()` method of a `Component` object returns a `Builder` (`dom/element.js`) object that can be used to create new dom elements.
 
 Most attributes can be set with the `attr` method, as we want to keep browser implementation as much as possible.
 
-You can create a shadow element using the `addSheet` method, but this is only recommended for the parent node in a `DomNode` tree (see Styling with Shadow Elements bellow).
+You can create a shadow element using the `addSheet` method, but this is only recommended for the parent node in a `Component` tree (see Styling with Shadow Elements bellow).
 
 You can add HTML but it's not recommended, instead keep using new Builders to create your tree, appending with the `addChild` method.
 
@@ -229,15 +229,17 @@ The engine supports Constructible StyleSheets. When you `addSheet()` using the `
 ```javascript
 import sheet from './myModule.css' assert { type: 'css' };
 
-class MyDomNode extends DomNode {
+class MyComponent extends Component {
     createDomNode() {
         return this.el('div').addSheet(sheet);
     }
 }
 ```
 
+This means the Style will only be available for this specific part of the DOM, which is a great way to encapsulate styles. This is an optional behaviour, but it let's you work on completly independent components. Since the CSS of the parent will not affect a shadowed child, in order to style the child you will need to append your own style sheet to it.
+
 ### The console
 
-The engine provides a very rudimentary console object (`debug/console.js`), a DomNode that can be included in your page. By default, the DomApp will use the browser's `console.log`, but you can override it.
+The engine provides a very rudimentary console object (`debug/console.js`), a Component that can be included in your page. By default, the Application will use the browser's `console.log`, but you can override it.
 
 See the `demo/index.html` for sample usage.

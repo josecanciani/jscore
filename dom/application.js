@@ -1,8 +1,8 @@
-import { Component } from './node.js';
+import { Component } from './component.js';
 import { LocalStorageWrapper } from '../db/localStorage.js';
 import { ShadowElement } from './element.js';
 
-export let DomApp = class extends Component {
+export let Application = class extends Component {
     /**
      * Main class to create your javascript application
      * @param {Document} document

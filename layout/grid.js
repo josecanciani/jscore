@@ -1,4 +1,4 @@
-import { Component } from '../dom/node.js';
+import { Component } from '../dom/component.js';
 import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap-4-grid@3.4.0/css/grid.min.css' assert { type: 'css' };
 
 export let Grid = class extends Component {
