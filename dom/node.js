@@ -73,13 +73,6 @@ let DomManager = class {
     }
 
     /**
-     * @param {String} querySelector this will instruct to search the parent dom node in the given tree
-     */
-    setParentQuerySelector(querySelector) {
-        this._parentQuerySelector = querySelector;
-    }
-
-    /**
      * @param {CSSStyleSheet} cssSheet
      */
     addCssSheet(cssSheet) {
@@ -94,7 +87,7 @@ let DomManager = class {
      */
     render(document, parent, beforeChild, ...children) {
         this._document = document;
-        this._parent = this._resolveParent(parent);
+        this._parent = parent;
         let builder = this._component.createDomNode();
         this._cssSheets.forEach((sheet) => builder.addSheet(sheet));
         this._domNode = this.build(builder);
@@ -146,21 +139,6 @@ let DomManager = class {
      */
     isShadowElement() {
         return this._domNode instanceof ShadowElement;
-    }
-
-    /**
-     * @param {HTMLElement} parent
-     */
-    _resolveParent(parent) {
-        if (!this._parentQuerySelector) {
-            return parent;
-        }
-        let parentDomNode = parent instanceof ShadowElement ? parent.getDomNode() : parent;
-        let wrappedParent = parentDomNode.querySelector(this._parentQuerySelector);
-        if (!wrappedParent) {
-            throw new Error('parentNotFound: ' + this._parentQuerySelector);
-        }
-        return wrappedParent;
     }
 
     $queryOverShadow(domNode, path) {
@@ -318,17 +296,6 @@ export let Component = class extends Emitter {
      */
     $$all(path) {
         return this.$queryAll(path).map((el) => this.$(el));
-    }
-
-    /**
-     * This method allows you to define a different parent html element for a child node
-     * @param {Component} child
-     * @param {String} selectorQuery
-     * @returns {Component} child chainable
-     */
-    setChildParent(child, selectorQuery) {
-        child._domManager.setParentQuerySelector(selectorQuery);
-        return child;
     }
 
     /**

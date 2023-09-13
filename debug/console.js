@@ -33,10 +33,7 @@ const Message = class extends Component {
     }
 
     beforeRender() {
-        this.append(this.getDomNode(), this.setChildParent(
-            this._toComponent(this.content),
-            'span.text'
-        ));
+        this.append(this.$query('span.text'), this._toComponent(this.content));
     }
 
     /**
@@ -97,7 +94,7 @@ export const Console = class extends Component {
     }
 
     beforeRender() {
-        this.append(this.getDomNode(), ...this.extraContent.map((content) => this.setChildParent(content, 'div.extraContent')));
+        this.append(this.$query('div.extraContent'), ...this.extraContent);
     }
 
     afterRender() {

@@ -32,26 +32,24 @@ You can include your `Application` and run it inside any DOM node, but you will 
         </script>
 ```
 
-### A DomNode
+### A Component
 
-A DomNode is the object representation of a group of DOM elements, encapsulating its behavior. You can also think of it as a Component in other JS frameworks.
+A `Component` is the base abstraction to build web pages. It's a representation of a group of DOM elements and it encapsulates it's application logic into smaller, easier to handle and extend, parts.
 
-The DomNode consists of a DOMElement tree plus -optionally- a set of other DomNode children. Each child is added and references are kept internally for removing dependencies later and allowing for accurate garbage collection.
+The Component consists of a `DOMElement`` tree plus -optionally- a set of other Component children. When a child Component is added, its references are kept internally for removing dependencies later and allowing for accurate garbage collection.
 
-DomNodes includes a set of handful methods for building the DOMElement tree and append its children.
+Components includes a set of handful methods for building the `DOMElement` tree and append its children.
 
-#### `createDomNode`
+#### `createDomNode()`
 
-The main method for building your node is the `createDomNode`, which sould return an HTML `Element` (more on this later, for now just know that you create HTML elements with the handful `el` method).
+The main method for building your Component is the `createDomNode()`, which is used to create the basic DOM tree where your Component will live. It should return an `HTMLElement` (represented by the `Builder` class). More on this later, for now just know that you create HTML elements with the handful `el()` method.
 
-This method will usually be used to create the basic DOM tree that your component will use.
-
-Here's a very basic application (remember a DomApp is a DomNode too) that renders a simple h1 header.
+Here's a very basic application (remember an `Application` is a `Component` too) that renders a simple `h1` header:
 
 ```javascript
-import { DomApp } from '../../dom/app.js';
+import { Application } from '../../dom/app.js';
 
-export let App = class extends DomApp {
+export let MyApp = class extends Application {
     createDomNode() {
         return super.createDomNode().addChild(
             this.el('h1').addText('This is just a H1 title')
@@ -63,13 +61,42 @@ Test live: [https://codepen.io/josecanciani/pen/dyzJgWB](https://codepen.io/jose
 
 #### `beforeRender` vs `afterRender`
 
-When rendering a node, there are two opportunities to add children `DomNode`s: `beforeRender` and `afterRender`.
+When rendering a component, there are two opportunities to add children `Component`s: `beforeRender` and `afterRender`.
 
-The difference lies in at what point the dom elements are inserted into the parent nodes. When using `beforeRender`, the nodes are added to the the object's element tree at a point when this tree is still **not** in the browser's DOM. `afterRender`, in contrast, is executed once the element tree has been added to the browser's DOM.
+The difference lies in at what point the components are inserted into their parent DOM Nodes. When using `beforeRender`, the child nodes are added to the the parent's element tree at a point when this tree is **not yet** in the browser's DOM. `afterRender`, in contrast, is executed once the element tree has been added to the browser's DOM.
 
-You will almost always use `beforeRender` so that all the tree is added at once, which should be faster and won't produce browser hiccups. But there is a situation when you do need the element inside the DOM, like when using an external Chart library that depends on a container to be already rendered in the browser.
+You will almost always use `beforeRender` so that all the tree appears at once to the user, which should be faster and won't produce browser hiccups. But there will be situations when you do need to run after the parent element is added to the browser DOM: for example using an external Chart library that depends on a container to be already rendered in the browser.
 
-Adding children can be done with the `append` and `appendBefore` methods. They will be added inside your main DOM Element (the one returned in the `createDomNode` method. See bellow on how to position children into other parts of the tree.
+#### `append` and `appendBefore`
+
+To add children to the DOM tree you use the `append` and `appendBefore` methods. They will be added inside your main DOM Element (the one returned in the `createDomNode()` method).
+
+```javascript
+    createDomNode() {
+        return this.el('table').addChild(
+            this.el('tr').addChild(
+                this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
+            .addChild(
+                this.el('td').addClass('right')
+            )
+        );
+     }
+```
+
+And now we use the `beforeRender` to append our child:
+
+```javascript
+    beforeRender() {
+        this.append(
+            this.$query('td.left'),
+            new Button()
+        );
+    }
+```
+
+In this case, instead of appending to `this.getDomNode()`, we are positioning the button on the a specific `td` element. You can just store a reference to the `td` element if you prefer, or like this example you can just use the handy `$query()` method to find it.
+
+Test live: [https://codepen.io/josecanciani/pen/VwzQYjQ](https://codepen.io/josecanciani/pen/VwzQYjQ)
 
 ### Events: the Emitter class
 
@@ -126,44 +153,11 @@ When calling `dispatchEvent` the engine will run all registered callbacks and ca
 
 By default, errors will be thrown later in the event loop, but you can avoid that if you deal with them by calling the `stopPropagation()` method of the returned error object.
 
-### Positioning a child
-
-Having one `HTMLElement` per `DomNode` class would be a nightmare of classes, so a `DomNode` can render a tree of elements. This tree is created in the `createDomNode` method.
-
-Sometimes you want a `DomNode` child added. This is usually done in the `beforeRender` method, but sometimes you want to render it under a specific element node. For this situation we have the handy `setChildParent` method. In this example we add a basic HTML Table where we will later render other `DomNode`s in its cells:
-
-```javascript
-    createDomNode() {
-        return this.el('table').addChild(
-            this.el('tr').addChild(
-                this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
-            .addChild(
-                this.el('td').addClass('right')
-            )
-        );
-     }
-```
-
-And now we use the `beforeRender` to append our child, but we wrap it using the `setChildParent` method -which is also chainable- in order to indicate insdie which element it should be placed:
-
-```javascript
-    beforeRender() {
-        this.append(
-            this.getDomNode(),
-            this.setChildParent(new Button(), 'td.left')
-        );
-    }
-```
-
-Test live: [https://codepen.io/josecanciani/pen/VwzQYjQ](https://codepen.io/josecanciani/pen/VwzQYjQ)
-
 ### Children life cycle: add and remove
 
 We already saw how to append a child, but there's another method called `appendBefore` that follows the native `insertBefore` browser method and allows to add an element before another.
 
 Both methods supports multiple children in the parameter, you can just add several in one command: `this.append(this.getDomNode(), child1, child2, ..., childN)`.
-
-You may also notice that the append methods receive a DomElement, which will usually be the main dom element of our object (the one created by the `createDomNode` method). You can specify any other element (see `Element` selector methods bellow), but usually you will just use the `setChildParent` method to specify it.
 
 Removing a child is as simple as calling it's `uninit` method.
 
@@ -178,7 +172,7 @@ Let's use our previous HTML Table example and this time we will "toogle" our but
         this._uninitPreviousButton();
         this.button = new Button();
         this.addListener(this.button, 'click', () => this._toogleButton(to, from));
-        this.append(this.getDomNode(), this.setChildParent(this.button, from));
+        this.append(from, this.button);
     }
 
     _uninitPreviousButton() {
@@ -230,11 +224,7 @@ The `$$` method is a shortcut to `this.$(this.$query(path))`.
 
 ### CSS Modules (over Shadow Elements): `addSheet()`
 
-The engine supports both Constructible StyleSheets and legacy style HTMLElements for backward compatibility.
-
-When you `addSheet` using the `Builder`, a Shadow Element will be created automatically, and the style will be appended to it.
-
-#### Modern version
+The engine supports Constructible StyleSheets. When you `addSheet()` using the `Builder`, a Shadow Element will be created automatically, and the style will be appended to it.
 
 ```javascript
 import sheet from './myModule.css' assert { type: 'css' };
@@ -245,19 +235,6 @@ class MyDomNode extends DomNode {
     }
 }
 ```
-
-#### Legacy version
-
-You can also use a style element instead, to support browsers that do not implement it:
-
-```javascript
-let style = document.createElement('style');
-```
-
-We provide the tool `tools/cssToJavascriptStyle.js` that converts a CSS file into a .css.js file that will export a sheet using this method.
-
-You can view `demo/index.legacy.html` to view a working example.
-
 
 ### The console
 
