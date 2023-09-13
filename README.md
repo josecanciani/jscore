@@ -1,13 +1,13 @@
 # jscore
 
-A collection of Javascript modules to build single page apps.
+A collection of Javascript modules to build single page apps (SSPs).
 
 ## Objectives
 
-* Use latest standards (at expense of browser support if needed)
+* Use latest standards (at expense of browser support if needed).
   * This includes `import` modules (both js and css) and the use of Shadow Elements for component style isolation.
-* Provide basic framework-like functionality to build apps
-* Manage object life-cycle automatically
+* Provide basic framework-like functionality to build apps.
+* Manage object life-cycle automatically, when possible.
 
 ## Inspiration
 
@@ -17,17 +17,13 @@ Some of the concepts are re-interpretations using new standards of [Avature](htt
 
 See a working Demo at https://josecanciani.github.io/jscore/demo/index.html
 
-## Development
-
-There's a GIT pre-commit hook in `tools/git/hooks/pre-commit` that we recommend you link in your project. This hook will prevent from committing changes when it finds differences between CSS files and its legacy counter-parts. See section "CSS Modules" bellow for more information.
-
 ## Tutorial
 
-### A DomApp
+### The Application class
 
-Any application must extend the `DomApp` class (`dom/app.js`). A `DomApp` is a special type of `DomNode` that has the `render()` method to draw itself. This is usually how you kick off your app.
+Any application must extend the `Application` class (`dom/app.js`). A `Application` is a special type of `Component` that has the `render()` method to draw itself. This is usually how you kick off your app.
 
-You can include your `DomApp` and run it inside any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
+You can include your `Application` and run it inside any DOM node, but you will usually use the `body` element as your root node. Check out [demo/index.html](demo/index.html) for a sample usage (we just include some basic Bootstrap CSS style and import a DomApp to render).
 
 ```html
         <script type="module">
@@ -46,7 +42,7 @@ DomNodes includes a set of handful methods for building the DOMElement tree and 
 
 #### `createDomNode`
 
-The main method for building your node is the `createDomNode`, which sould return an HTML `Element` (more on this later, for now just know that you create HTML elements with the handful `el` method). 
+The main method for building your node is the `createDomNode`, which sould return an HTML `Element` (more on this later, for now just know that you create HTML elements with the handful `el` method).
 
 This method will usually be used to create the basic DOM tree that your component will use.
 
