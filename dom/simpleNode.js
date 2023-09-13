@@ -1,8 +1,9 @@
-import { DomNode } from './node.js';
+import { Component } from './node.js';
+import { Builder } from './element.js';
 
-export let SimpleNode = class extends DomNode {
+export let SimpleNode = class extends Component {
     /**
-     * A simple HTMLElement to DomNode wrapper
+     * A simple HTMLElement to Component wrapper
      * @param {Builder} builder
      */
     constructor(builder) {
@@ -10,6 +11,9 @@ export let SimpleNode = class extends DomNode {
         this.builder = builder;
     }
 
+    /**
+     * @returns {Builder}
+     */
     createDomNode() {
         return this.builder;
     }

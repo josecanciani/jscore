@@ -1,24 +1,20 @@
-export let ShadowElement = class extends HTMLElement {
+export const ShadowElement = class extends HTMLElement {
     /**
-     *
-     * @param {DomElement}
-     * @param {*} sheets
+     * @param {HTMLElement}
+     * @param {CSSStyleSheet} sheets
      */
-    constructor(element, sheets) {
+    constructor(element, ...sheets) {
         super();
         let shadow = this.attachShadow({mode: 'open'});
-        let styleSheets = sheets.filter((sheet) => sheet instanceof CSSStyleSheet);
-        if (styleSheets.length) {
-            shadow.adoptedStyleSheets = styleSheets;
+        if (sheets.length) {
+            shadow.adoptedStyleSheets = sheets;
         }
-        // this is for legacy support, until Constructable StyleSheets are mainstream
-        sheets.filter((sheet) => !(sheet instanceof CSSStyleSheet)).forEach((legacySheet) => shadow.appendChild(legacySheet));
         this.domNode = element;
         shadow.appendChild(element);
     }
 
     /**
-     * @returns {DomElement}
+     * @returns {HTMLElement}
      */
     getDomNode() {
         return this.domNode;
@@ -40,7 +36,7 @@ export let ShadowElement = class extends HTMLElement {
     }
 };
 
-let TextNode = class {
+const TextNode = class {
     constructor(text) {
         this.text = text;
     }
@@ -50,12 +46,10 @@ let TextNode = class {
     }
 };
 
-export let Builder = class {
+export const Builder = class {
     /**
-     * A simple builder for DOM elements. Should be available to any {DomNode} class using el() method
-     * @param {Document} document
-     * @param {String} type a dom type (like "div")
-     * @param {CSSStyleSheet} sheet a css style sheet to apply to this node
+     * A simple builder for DOM elements. Should be available to any Component class using the el() method
+     * @param {String} type a dom element type (like "div")
      */
     constructor(type) {
         this.type = type;
@@ -83,8 +77,8 @@ export let Builder = class {
      */
     addChild(builder, first) {
         if (builder) {
-            if (!builder.build) {
-                throw new Error('Only builders are allowed');
+            if (!(builder instanceof Builder)) {
+                throw new Error('canOnlyAddDomElements');
             }
             if (first) {
                 this.childs.unshift(builder);
@@ -92,6 +86,11 @@ export let Builder = class {
                 this.childs.push(builder);
             }
         }
+        return this;
+    }
+
+    addChilds(...builders) {
+        builders.forEach((builder) => this.addChild(builder));
         return this;
     }
 
@@ -118,6 +117,9 @@ export let Builder = class {
      */
     addSheet(sheet) {
         if (sheet) {
+            if (!(sheet instanceof CSSStyleSheet)) {
+                throw new Error('invalidCSSStyleSheet: ' + sheet);
+            }
             this.sheets.push(sheet);
         }
         return this;
@@ -195,19 +197,20 @@ export let Builder = class {
             el.value = this.value;
         }
         if (this.sheets.length) {
-            return new ShadowElement(el, this.sheets);
+            return new ShadowElement(el, ...this.sheets);
         }
         return el;
     }
 };
 
-export let Modifier = class {
+export const Modifier = class {
     /**
      * A helper class to perform common actions on html elements
      * @param {HTMLElement} el
      */
-    constructor(el) {
+    constructor(el, document) {
         this.element = el;
+        this.document = document;
     }
 
     /**
@@ -230,6 +233,16 @@ export let Modifier = class {
     }
 
     /**
+     * Add a Text Node inside this element
+     * @param {String} text
+     * @returns {Builder}
+     */
+    addText(text) {
+        this.element.appendChild((new TextNode(text)).build(this.document));
+        return this;
+    }
+
+    /**
      * @param {Boolean} hide whether to hide or unhide the element
      * @returns {Modifier}
      */
@@ -248,6 +261,12 @@ export let Modifier = class {
      */
     enable(enable) {
         this.element.disabled = !enable;
+        return this;
+    }
+
+    /** @param {Builder} builder */
+    append(...builders) {
+        builders.forEach((builder) => this.element.appendChild(builder.build(this.document)))
         return this;
     }
 

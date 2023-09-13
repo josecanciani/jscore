@@ -4,10 +4,10 @@ import { Builder, Modifier, ShadowElement } from './element.js';
 let ChildManager = class {
     /**
      * This class has all the logic to deal with the life-cycle of the children of a node
-     * @param {DomNode} node
+     * @param {Component} component
      */
-    constructor(node) {
-        this._node = node;
+    constructor(component) {
+        this._component = component;
         this._childrenHWM = 0;
         this._children = {};
         // _id and _parent will be set when node is attached to a parent
@@ -17,14 +17,14 @@ let ChildManager = class {
 
     /**
      * This method will create the relation between parent and child node, and assign the document for the child to work with
-     * @param {DomNode} child
+     * @param {Component} child
      */
     attach(child) {
         this._childrenHWM++;
         let childId = String(this._childrenHWM);
         this._children[childId] = child;
         child._childManager._id = childId;
-        child._childManager._parent = this._node;
+        child._childManager._parent = this._component;
     }
 
     /**
@@ -36,7 +36,7 @@ let ChildManager = class {
     }
 
     /**
-     * @returns {DomNode[]} All children nodes
+     * @returns {Component[]} All children nodes
      */
     getAllChildren() {
         let children = [];
@@ -46,8 +46,13 @@ let ChildManager = class {
         return children;
     }
 
-    uninit() {
+    reset() {
         this.getAllChildren().forEach((child) => child.uninit());
+        this._children = {};
+    }
+
+    uninit() {
+        this.reset();
         delete this._children;
         delete this._parent;
     }
@@ -56,10 +61,10 @@ let ChildManager = class {
 let DomManager = class {
     /**
      * This class has all the logic to deal with the life-cycle of the children of a node
-     * @param {DomNode} node
+     * @param {Component} component
      */
-    constructor(node) {
-        this._node = node;
+    constructor(component) {
+        this._component = component;
         this._cssSheets = [];
         // _document, _parent and _domNode will be available on render
         this._document = null;
@@ -90,17 +95,20 @@ let DomManager = class {
     render(document, parent, beforeChild, ...children) {
         this._document = document;
         this._parent = this._resolveParent(parent);
-        let builder = this._node.createDomNode();
+        let builder = this._component.createDomNode();
         this._cssSheets.forEach((sheet) => builder.addSheet(sheet));
         this._domNode = this.build(builder);
+        if (!this._domNode) {
+            throw new Error('invalid domnode');
+        }
         this.appendChildren(this.getDomNode(), null, ...children);
-        this._node.beforeRender();
+        this._component.beforeRender();
         if (beforeChild) {
             this._parent.insertBefore(this._domNode, beforeChild);
         } else {
             this._parent.appendChild(this._domNode);
         }
-        this._node.afterRender();
+        this._component.afterRender();
     }
 
     /**
@@ -112,8 +120,13 @@ let DomManager = class {
 
     appendChildren(parent, beforeChild, ...children) {
         children.forEach((child) => {
-            this._node._childManager.attach(child);
-            child._domManager.render(this._document, parent, beforeChild);
+            if (child) {
+                if (!(child instanceof Component)) {
+                    throw new Error('canOnlyAppendComponents');
+                }
+                this._component._childManager.attach(child);
+                child._domManager.render(this._document, parent, beforeChild);
+            }
         });
     }
 
@@ -121,11 +134,18 @@ let DomManager = class {
      * @returns {HTMLElement}
      */
     getDomNode() {
-        if (this._domNode instanceof ShadowElement) {
+        if (this.isShadowElement()) {
             return this._domNode.getDomNode();
         } else {
             return this._domNode;
         }
+    }
+
+    /**
+     * @returns {Boolean} if the dom node is instace of a ShadowElement
+     */
+    isShadowElement() {
+        return this._domNode instanceof ShadowElement;
     }
 
     /**
@@ -143,6 +163,29 @@ let DomManager = class {
         return wrappedParent;
     }
 
+    $queryOverShadow(domNode, path) {
+        for (const shadow of domNode.querySelectorAll('jscore-shadow')) {
+            const match = shadow.shadowRoot.querySelector(path);
+            if (match) {
+                return match;
+            }
+            const childMatch = this.$queryOverShadow(shadow.shadowRoot, path);
+            if (childMatch) {
+                return childMatch;
+            }
+        }
+        return null;
+    }
+
+    $queryAllOverShadow(domNode, path) {
+        const data = [];
+        for (const shadow of domNode.querySelectorAll('jscore-shadow')) {
+            data.push(...shadow.shadowRoot.querySelectorAll(path));
+            data.push(...this.$queryAllOverShadow(shadow.shadowRoot, path));
+        }
+        return data;
+    }
+
     uninit() {
         if (this._parent) {
             this._parent.removeChild(this._domNode);
@@ -150,11 +193,11 @@ let DomManager = class {
         delete this._parent;
         delete this._document;
         delete this._domNode;
-        delete this._node;
+        delete this._component;
     }
 };
 
-export let DomNode = class extends Emitter {
+export let Component = class extends Emitter {
     constructor() {
         super();
         this._childManager = new ChildManager(this);
@@ -194,7 +237,7 @@ export let DomNode = class extends Emitter {
     }
 
     /**
-     * @returns {DomNode[]} All children nodes
+     * @returns {Component[]} All children Components
      */
     getAllChildren() {
         return this._childManager.getAllChildren();
@@ -202,7 +245,7 @@ export let DomNode = class extends Emitter {
 
     /**
      * @param {CSSStyleSheet} cssSheet
-     * @returns {DomNode} chainable
+     * @returns {Component} chainable
      */
     addCssSheet(cssSheet) {
         this._domManager.addCssSheet(cssSheet);
@@ -225,7 +268,10 @@ export let DomNode = class extends Emitter {
      * @returns {Modifier}
      */
     $(el) {
-        return new Modifier(el);
+        if (!this._domManager._document) {
+            throw new Error('cannotCreateModifierIfElementHasNotBeenRendered');
+        }
+        return new Modifier(el, this._domManager._document);
     }
 
     /**
@@ -234,7 +280,22 @@ export let DomNode = class extends Emitter {
      * @returns {HTMLElement}
      */
     $query(path) {
-        return this.getDomNode().querySelector(path);
+        const match = this.getDomNode().querySelector(path);
+        if (match) {
+            return match;
+        }
+        return this._domManager.$queryOverShadow(this.getDomNode(), path);
+    }
+
+    /**
+     * Search dom node using document.querySelector
+     * @param {String} path
+     * @returns {HTMLElement}[]
+     */
+    $queryAll(path) {
+        const data = Array.from(this.getDomNode().querySelectorAll(path));
+        data.push(...this._domManager.$queryAllOverShadow(this.getDomNode(), path));
+        return data;
     }
 
     /**
@@ -243,14 +304,27 @@ export let DomNode = class extends Emitter {
      * @returns {Modifier}
      */
     $$(path) {
-        return this.$(this.$query(path));
+        const selected = this.$query(path);
+        if (!selected) {
+            throw new Error(`selectorNotFound: ${path}`);
+        }
+        return this.$(selected);
+    }
+
+    /**
+     * Shortcut for this.$queryAll(path).map((el) => this.$(el))
+     * @param {String} path
+     * @returns {Modifier}[]
+     */
+    $$all(path) {
+        return this.$queryAll(path).map((el) => this.$(el));
     }
 
     /**
      * This method allows you to define a different parent html element for a child node
-     * @param {DomNode} child
+     * @param {Component} child
      * @param {String} selectorQuery
-     * @returns {DomNode} child chainable
+     * @returns {Component} child chainable
      */
     setChildParent(child, selectorQuery) {
         child._domManager.setParentQuerySelector(selectorQuery);
@@ -260,7 +334,7 @@ export let DomNode = class extends Emitter {
     /**
      * Render element after another, aka parent.insertBefore()
      * @param {Node} parent
-     * @param {...DomNode} children
+     * @param {...Component} children
      */
     append(parent, ...children) {
         this._domManager.appendChildren(parent, null, ...children);
@@ -269,10 +343,14 @@ export let DomNode = class extends Emitter {
     /**
      * Render element after another, aka parent.insertBefore()
      * @param {Node} parent
-     * @param  {...DomNode} childs
+     * @param  {...Component} childs
      */
     appendBefore(parent, beforeChild, ...children) {
         this._domManager.appendChildren(parent, beforeChild, ...children);
+    }
+
+    reset() {
+        this._childManager.reset();
     }
 
     uninit() {

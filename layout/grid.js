@@ -1,7 +1,7 @@
-import { DomNode } from '../dom/node.js';
+import { Component } from '../dom/node.js';
 import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap-4-grid@3.4.0/css/grid.min.css' assert { type: 'css' };
 
-export let Grid = class extends DomNode {
+export let Grid = class extends Component {
     /**
      * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
      * @param {String} mainClass Bootstrap classname (defaults to "container-fluid")
@@ -32,7 +32,7 @@ export let Grid = class extends DomNode {
     }
 };
 
-export let Row = class extends DomNode {
+export let Row = class extends Component {
     /**
      * @param {String} classNames Bootstrap classname plus your own (default to "row")
      */
@@ -60,7 +60,7 @@ export let Row = class extends DomNode {
     }
 };
 
-export let Column = class extends DomNode {
+export let Column = class extends Component {
     /**
      * @param {String} classNames Bootstrap class name and your own (defaults to "col-md-auto")
      */
@@ -89,7 +89,7 @@ export let Column = class extends DomNode {
     }
 };
 
-export let Content = class extends DomNode {
+export let Content = class extends Component {
     /**
      * @param {NodeNde} child
      * @param {String} classNames Bootstrap class name or your own (default to "col-md-auto")

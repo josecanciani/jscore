@@ -1,16 +1,17 @@
-import { DomNode } from '../dom/node.js';
+import { Component } from '../dom/node.js';
 import { SimpleNode } from '../dom/simpleNode.js';
+import sheet from './console.css' assert { type: 'css' };
 
 /**
  * Default Message TTL, meassure in number of new messages before removing it from the view
  */
-let DEFAULT_TTL = 100;
+const DEFAULT_TTL = 100;
 
-let buildSpanNode = (parent, text, child, isError) => {
+const buildSpanMessageComponent = (parent, text, child, isError) => {
     return new SimpleNode(parent.el('span').addClass('log').addClass(isError ? 'error' : null).addText(text).addChild(child));
 };
 
-let Message = class extends DomNode {
+const Message = class extends Component {
     constructor(id, type, content, ttl) {
         super();
         this.id = id;
@@ -33,28 +34,28 @@ let Message = class extends DomNode {
 
     beforeRender() {
         this.append(this.getDomNode(), this.setChildParent(
-            this._messageToDomNode(this.content),
+            this._toComponent(this.content),
             'span.text'
         ));
     }
 
     /**
-     * Converts common elements to a DOM node to show in the console
-     * @returns {HTMLElement}
+     * Converts common elements to a Component to show in the console
+     * @returns {Component}
      */
-    _messageToDomNode(message) {
-        if (message instanceof DomNode) {
+    _toComponent(message) {
+        if (message instanceof Component) {
             return message;
         }
         if (message instanceof Error) {
             const extraData = message.extraData || '';
             const parsedExtraData = extraData.toUpperCase().includes('<!DOCTYPE HTML') ? this._htmlToText(extraData) : extraData;
-            return buildSpanNode(this, (message.message || 'Unknown Error') + (parsedExtraData ? ' Exception details: ' + parsedExtraData : ''), null, true);
+            return buildSpanMessageComponent(this, (message.message || 'Unknown Error') + (parsedExtraData ? ' Exception details: ' + parsedExtraData : ''), null, true);
         }
         if (typeof message === 'object') {
-            return buildSpanNode(this, JSON.stringify(message));
+            return buildSpanMessageComponent(this, JSON.stringify(message));
         }
-        return buildSpanNode(this, String(message));
+        return buildSpanMessageComponent(this, String(message));
     }
 
     /**
@@ -71,14 +72,14 @@ let Message = class extends DomNode {
     }
 };
 
-export let ErrorType = {
+export const ErrorType = {
     INFO: 'info',
     WARNING: 'warning',
     ERROR: 'error'
 };
 
-export let Console = class extends DomNode {
-    constructor(sheet) {
+export const Console = class extends Component {
+    constructor() {
         super();
         this.sheet = sheet;
         this.count = 0;
@@ -106,10 +107,10 @@ export let Console = class extends DomNode {
 
     /**
      * Allow adding custom widgets to this console
-     * @param {DomNode} node
+     * @param {Component} Component
      */
-    addExtraContent(node) {
-        this.extraContent.push(node);
+    addExtraContent(component) {
+        this.extraContent.push(component);
     }
 
     /**
