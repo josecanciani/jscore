@@ -40,7 +40,7 @@ export let Application = class extends Component {
     }
 
     createDomNode() {
-        return this.el('div').addClass(this._className).addSheet(this._sheet);
+        return this.el('div').addCssClass(this._className).addCssSheet(this._sheet);
     }
 
     /**

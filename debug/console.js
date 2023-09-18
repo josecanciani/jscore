@@ -8,7 +8,7 @@ import sheet from './console.css' assert { type: 'css' };
 const DEFAULT_TTL = 100;
 
 const buildSpanMessageComponent = (parent, text, child, isError) => {
-    return new SimpleNode(parent.el('span').addClass('log').addClass(isError ? 'error' : null).addText(text).addChild(child));
+    return new SimpleNode(parent.el('span').addCssClass('log').addCssClass(isError ? 'error' : null).addText(text).addChild(child));
 };
 
 const Message = class extends Component {
@@ -26,10 +26,10 @@ const Message = class extends Component {
 
     createDomNode() {
         return this.el('div')
-            .addClass('message')
-            .addClass(this.type)
-            .addChild(this.el('span').addClass('number').addText(this.id + ': '))
-            .addChild(this.el('span').addClass('text'));
+            .addCssClass('message')
+            .addCssClass(this.type)
+            .addChild(this.el('span').addCssClass('number').addText(this.id + ': '))
+            .addChild(this.el('span').addCssClass('text'));
     }
 
     beforeRender() {
@@ -86,11 +86,11 @@ export const Console = class extends Component {
 
     createDomNode() {
         return this.el('div')
-            .addClass('console')
+            .addCssClass('console')
             .addChild(this.el('h1').addText('Console'))
-            .addChild(this.extraContent.length ? this.el('div').addClass('extraContent') : null)
-            .addChild(this.el('div').addClass('messages'))
-            .addSheet(this.sheet);
+            .addChild(this.extraContent.length ? this.el('div').addCssClass('extraContent') : null)
+            .addChild(this.el('div').addCssClass('messages'))
+            .addCssSheet(this.sheet);
     }
 
     beforeRender() {

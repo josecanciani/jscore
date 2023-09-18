@@ -65,7 +65,7 @@ export const Builder = class {
      * @param {String[]} classNames CSS class names for this element
      * @returns {Builder}
      */
-    addClass(...classNames) {
+    addCssClass(...classNames) {
         classNames.forEach((className) => this.classNames.push(className));
         return this;
     }
@@ -115,7 +115,7 @@ export const Builder = class {
      * @param {CSSStyleSheet} sheet
      * @returns {Builder}
      */
-    addSheet(sheet) {
+    addCssSheet(sheet) {
         if (sheet) {
             if (!(sheet instanceof CSSStyleSheet)) {
                 throw new Error('invalidCSSStyleSheet: ' + sheet);
@@ -261,6 +261,16 @@ export const Modifier = class {
      */
     enable(enable) {
         this.element.disabled = !enable;
+        return this;
+    }
+
+    addCssClass(...classNames) {
+        this.element.classList.add(...classNames);
+        return this;
+    }
+
+    removeCssClass(...classNames) {
+        this.element.classList.remove(...classNames);
         return this;
     }
 

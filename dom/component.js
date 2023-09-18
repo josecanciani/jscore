@@ -76,6 +76,9 @@ let DomManager = class {
      * @param {CSSStyleSheet} cssSheet
      */
     addCssSheet(cssSheet) {
+        if (this._domNode) {
+            throw new Error('cannotAddCssSheetToAlreadyRenderedElement');
+        }
         this._cssSheets.push(cssSheet);
     }
 
@@ -83,13 +86,13 @@ let DomManager = class {
      * @param {Document} document
      * @param {HtmlElement} parent
      * @param {HtmlElement} beforeChild
-     * @param  {...DomNode} children
+     * @param {...DomNode} children
      */
     render(document, parent, beforeChild, ...children) {
         this._document = document;
         this._parent = parent;
         let builder = this._component.createDomNode();
-        this._cssSheets.forEach((sheet) => builder.addSheet(sheet));
+        this._cssSheets.forEach((sheet) => builder.addCssSheet(sheet));
         this._domNode = this.build(builder);
         if (!this._domNode) {
             throw new Error('invalid domnode');
@@ -127,6 +130,9 @@ let DomManager = class {
      * @returns {HTMLElement}
      */
     getDomNode() {
+        if (!this._domNode) {
+            throw new Error('cannotGetDomNodeBeforeRendering');
+        }
         if (this.isShadowElement()) {
             return this._domNode.getDomNode();
         } else {
@@ -175,7 +181,7 @@ let DomManager = class {
     }
 };
 
-export let Component = class extends Emitter {
+export const Component = class extends Emitter {
     constructor() {
         super();
         this._childManager = new ChildManager(this);
@@ -326,5 +332,19 @@ export let Component = class extends Emitter {
         this._domManager.uninit();
         delete this._childManager;
         delete this._domManager;
+    }
+};
+
+
+export const BaseDomElement = class extends Component {
+    addCssClass(...classNames) {
+        this._classNames = classNames;
+        return this;
+    }
+
+    beforeRender() {
+        if (this._classNames) {
+            this.$(this.getDomNode()).addCssClass(...this._classNames);
+        }
     }
 };

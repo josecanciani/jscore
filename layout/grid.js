@@ -14,8 +14,8 @@ export let Grid = class extends Component {
 
     createDomNode() {
         return this.el('div')
-            .addSheet(sheet)
-            .addClass(this.className);
+            .addCssSheet(sheet)
+            .addCssClass(this.className);
     }
 
     /**
@@ -52,7 +52,7 @@ export let Row = class extends Component {
     }
 
     createDomNode() {
-        return this.el('div').addClass(...this.classNames);
+        return this.el('div').addCssClass(...this.classNames);
     }
 
     beforeRender() {
@@ -81,7 +81,7 @@ export let Column = class extends Component {
     }
 
     createDomNode() {
-        return this.el('div').addClass(...this.classNames);
+        return this.el('div').addCssClass(...this.classNames);
     }
 
     beforeRender() {
@@ -101,7 +101,7 @@ export let Content = class extends Component {
     }
 
     createDomNode() {
-        return this.el('div').addClass(...this.classNames);
+        return this.el('div').addCssClass(...this.classNames);
     }
 
     beforeRender() {

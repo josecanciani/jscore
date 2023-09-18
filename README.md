@@ -75,9 +75,9 @@ To add children to the DOM tree you use the `append` and `appendBefore` methods.
     createDomNode() {
         return this.el('table').addChild(
             this.el('tr').addChild(
-                this.el('td').addClass('left').addText('Left column, on the right the custom positioned content: '))
+                this.el('td').addCssClass('left').addText('Left column, on the right the custom positioned content: '))
             .addChild(
-                this.el('td').addClass('right')
+                this.el('td').addCssClass('right')
             )
         );
      }
@@ -198,7 +198,7 @@ The `el()` method of a `Component` object returns a `Builder` (`dom/element.js`)
 
 Most attributes can be set with the `attr` method, as we want to keep browser implementation as much as possible.
 
-You can create a shadow element using the `addSheet` method, but this is only recommended for the parent node in a `Component` tree (see Styling with Shadow Elements bellow).
+You can create a shadow element using the `addCssSheet` method, but this is only recommended for the parent node in a `Component` tree (see Styling with Shadow Elements bellow).
 
 You can add HTML but it's not recommended, instead keep using new Builders to create your tree, appending with the `addChild` method.
 
@@ -222,16 +222,16 @@ Most handy methods are `enable()` and `hide()`. Again, anything that can be achi
 The `$$` method is a shortcut to `this.$(this.$query(path))`.
 
 
-### CSS Modules (over Shadow Elements): `addSheet()`
+### CSS Modules (over Shadow Elements): `addCssSheet()`
 
-The engine supports Constructible StyleSheets. When you `addSheet()` using the `Builder`, a Shadow Element will be created automatically, and the style will be appended to it.
+The engine supports Constructible StyleSheets. When you `addCssSheet()` using the `Builder`, a Shadow Element will be created automatically, and the style will be appended to it.
 
 ```javascript
 import sheet from './myModule.css' assert { type: 'css' };
 
 class MyComponent extends Component {
     createDomNode() {
-        return this.el('div').addSheet(sheet);
+        return this.el('div').addCssSheet(sheet);
     }
 }
 ```
