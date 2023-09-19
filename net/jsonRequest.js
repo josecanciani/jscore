@@ -1,3 +1,15 @@
+/**
+ * @callback processLineCallback
+ * @param {string} line
+ * @param {number} lineNumber
+ */
+
+/**
+ * @callback processLineEndCallback
+ * @param {number} lineCount
+ */
+
+
 export let JsonRequestError = class extends Error {
     setResponseText(responseText) {
         this.responseText = responseText;
@@ -52,7 +64,12 @@ export let JsonRequest = class {
         }
     }
 
-    async processLine(callback) {
+    /**
+     * Process request output line by line
+     * @param {processLineCallback} callback - The callback that handles each line
+     * @param {processLineEndCallback} endCallback - The callback that is called at the end (even if no line was processed)
+     */
+    async processLine(callback, endCallback) {
         const utf8Decoder = new TextDecoder("utf-8");
         const response = await this.doGet();
         const reader = response.body.getReader();
@@ -61,6 +78,7 @@ export let JsonRequest = class {
 
         const re = /\r\n|\n|\r/gm;
         let startIndex = 0;
+        let linesFound = 0;
 
         for (;;) {
             const result = re.exec(chunk);
@@ -74,13 +92,16 @@ export let JsonRequest = class {
                 startIndex = re.lastIndex = 0;
                 continue;
             }
-            await callback(chunk.substring(startIndex, result.index));
+            linesFound++;
+            await callback(chunk.substring(startIndex, result.index), linesFound);
             startIndex = re.lastIndex;
         }
         if (startIndex < chunk.length) {
             // last line didn't end in a newline char
-            await callback(chunk.substr(startIndex));
+            linesFound++
+            await callback(chunk.substr(startIndex), linesFound);
         }
+        await endCallback(linesFound)
     }
 
     getResponseHeader(name) {
