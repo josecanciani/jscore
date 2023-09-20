@@ -11,16 +11,26 @@
 
 
 export let JsonRequestError = class extends Error {
-    setResponseText(responseText) {
+    constructor(message, status, responseText) {
+        super(message);
+        this.status = status;
         this.responseText = responseText;
     }
 
     getResponseText() {
         return this.responseText;
     }
+
+    getStatus() {
+        return this.status;
+    }
 }
 
 export let JsonRequest = class {
+    /**
+     * @param {string} url
+     * @param {object} headers
+     */
     constructor(url, headers) {
         this.url = url;
         this.headers = headers;
@@ -34,13 +44,12 @@ export let JsonRequest = class {
             throw new JsonRequestError('JsonRequestError: fetch error: ' + String(e));
         }
         this.responseHeaders = response.headers;
-        if (!response.ok) {
-            let error = new JsonRequestError('JsonRequestError: there was an error processing your request');
-            error.setResponseText(await response.text());
-            throw error;
-        }
-        if (response.status !== 200) {
-            throw new JsonRequestError('JsonRequestError: got http code ' + response.status);
+        if (!response.ok || response.status !== 200) {
+            throw new JsonRequestError(
+                'JsonRequestError: there was an error processing your request',
+                response.status,
+                await response.text()
+            );
         }
         return response;
     }
