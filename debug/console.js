@@ -11,13 +11,23 @@ const buildSpanMessageComponent = (parent, text, child, isError) => {
     return new SimpleNode(parent.el('span').addCssClass('log').addCssClass(isError ? 'error' : null).addText(text).addChild(child));
 };
 
-const Message = class extends Component {
-    constructor(id, type, content, ttl) {
+export const ErrorType = {
+    INFO: 'info',
+    WARNING: 'warning',
+    ERROR: 'error'
+};
+
+export const Message = class extends Component {
+    /**
+     * @param {string|Error|Component} content
+     * @param {string} type One of ErrorType.*
+     * @param {number} ttl Clean message after this number of new messages arrived (default to DEFAULT_TTL, use 0 for never)
+     */
+    constructor(content, type, ttl) {
         super();
-        this.id = id;
-        this.type = type;
-        this.content = content;
-        this.ttl = ttl;
+        this.content = this._toComponent(content);
+        this.type = type || (content instanceof Error ? ErrorType.ERROR : ErrorType.INFO);
+        this.ttl = typeof ttl === 'undefined' ? DEFAULT_TTL : ttl;
     }
 
     getTtl() {
@@ -33,7 +43,7 @@ const Message = class extends Component {
     }
 
     beforeRender() {
-        this.append(this.$query('span.text'), this._toComponent(this.content));
+        this.append(this.$query('span.text'), this.content);
     }
 
     /**
@@ -67,12 +77,11 @@ const Message = class extends Component {
         let body = m !== null ? m[0] : html;
         return this._domManager.build(this.el('div').html(body)).innerText;
     }
-};
 
-export const ErrorType = {
-    INFO: 'info',
-    WARNING: 'warning',
-    ERROR: 'error'
+    /** @private this module only */
+    _setId(id) {
+        this.id = id;
+    }
 };
 
 export const Console = class extends Component {
@@ -111,14 +120,16 @@ export const Console = class extends Component {
     }
 
     /**
-     *
-     * @param {*} message Text, Exception or dom/Node
-     * @param {String} type One of ErrorType.*
-     * @param {Number} ttl Clean message after this number of new messages arrived (default to DEFAULT_TTL, use 0 for never)
+     * Add a Message to the Console
+     * @param {string|Message|Error|Component} message
+     * @param {string} type One of ErrorType.* (optional if message is Message)
+     * @param {number} ttl Clean message after this number of new messages arrived (default to DEFAULT_TTL, use 0 for never)
      */
     log(message, type, ttl) {
         this.count++;
-        this.buffer.push(new Message(this.count, type || ErrorType.INFO, message, typeof ttl === 'undefined' ? DEFAULT_TTL : ttl));
+        const logMessage = message instanceof Message ? message : new Message(message, type, ttl);
+        logMessage._setId(this.count);
+        this.buffer.push();
         if (this.getDomNode() && !this._timeout) {
             this._timeout = setTimeout(() => this._appendLogs(), 100);
         }
