@@ -129,7 +129,7 @@ export const Console = class extends Component {
         this.count++;
         const logMessage = message instanceof Message ? message : new Message(message, type, ttl);
         logMessage._setId(this.count);
-        this.buffer.push();
+        this.buffer.push(logMessage);
         if (this.getDomNode() && !this._timeout) {
             this._timeout = setTimeout(() => this._appendLogs(), 100);
         }
