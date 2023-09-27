@@ -77,10 +77,14 @@ export let JsonRequest = class {
      * Process request output line by line
      * @param {processLineCallback} callback - The callback that handles each line
      * @param {processLineEndCallback} endCallback - The callback that is called at the end (even if no line was processed)
+     * @param {processLineEndCallback} responseCallback - In case you need the fetch response object for anything else (headers) use this callback
      */
-    async processLine(callback, endCallback) {
+    async processLine(callback, endCallback, responseCallback) {
         const utf8Decoder = new TextDecoder("utf-8");
         const response = await this.doGet();
+        if (responseCallback) {
+            responseCallback(response);
+        }
         const reader = response.body.getReader();
         let { value: chunk, done: readerDone } = await reader.read();
         chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : "";
