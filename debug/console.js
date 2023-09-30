@@ -43,7 +43,7 @@ export const Message = class extends Component {
     }
 
     beforeRender() {
-        this.append(this.$query('span.text'), this._contentToComponent();
+        this.append(this.$query('span.text'), this._contentToComponent());
     }
 
     /**
