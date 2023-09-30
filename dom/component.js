@@ -352,7 +352,7 @@ export const BaseDomElement = class extends Component {
             this.$(this.getDomNode()).addCssClass(...classNames);
         } else {
             for (const className of classNames) {
-                const index = array.indexOf(className);
+                const index = this._classNamesBuffer.indexOf(className);
                 if (index === -1) {
                     this._classNamesBuffer.push(className);
                 }
@@ -367,7 +367,7 @@ export const BaseDomElement = class extends Component {
             this.$(this.getDomNode()).removeCssClass(...classNames);
         } else {
             for (const className of classNames) {
-                const index = array.indexOf(className);
+                const index = this._classNamesBuffer.indexOf(className);
                 if (index !== -1) {
                     this._classNamesBuffer.splice(index, 1);
                 }
