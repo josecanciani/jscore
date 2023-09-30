@@ -25,7 +25,7 @@ export const Message = class extends Component {
      */
     constructor(content, type, ttl) {
         super();
-        this.content = this._toComponent(content);
+        this.content = content;
         this.type = type || (content instanceof Error ? ErrorType.ERROR : ErrorType.INFO);
         this.ttl = typeof ttl === 'undefined' ? DEFAULT_TTL : ttl;
     }
@@ -43,26 +43,26 @@ export const Message = class extends Component {
     }
 
     beforeRender() {
-        this.append(this.$query('span.text'), this.content);
+        this.append(this.$query('span.text'), this._contentToComponent();
     }
 
     /**
      * Converts common elements to a Component to show in the console
      * @returns {Component}
      */
-    _toComponent(message) {
-        if (message instanceof Component) {
-            return message;
+    _contentToComponent() {
+        if (this.content instanceof Component) {
+            return this.content;
         }
-        if (message instanceof Error) {
-            const extraData = message.extraData || '';
+        if (this.content instanceof Error) {
+            const extraData = this.content.extraData || '';
             const parsedExtraData = extraData.toUpperCase().includes('<!DOCTYPE HTML') ? this._htmlToText(extraData) : extraData;
-            return buildSpanMessageComponent(this, (message.message || 'Unknown Error') + (parsedExtraData ? ' Exception details: ' + parsedExtraData : ''), null, true);
+            return buildSpanMessageComponent(this, (this.content.message || 'Unknown Error') + (parsedExtraData ? ' Exception details: ' + parsedExtraData : ''), null, true);
         }
-        if (typeof message === 'object') {
-            return buildSpanMessageComponent(this, JSON.stringify(message));
+        if (typeof this.content === 'object') {
+            return buildSpanMessageComponent(this, JSON.stringify(this.content));
         }
-        return buildSpanMessageComponent(this, String(message));
+        return buildSpanMessageComponent(this, String(this.content));
     }
 
     /**
