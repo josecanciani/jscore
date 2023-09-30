@@ -264,13 +264,38 @@ export const Modifier = class {
         return this;
     }
 
+    /** @param {...string} classNames */
     addCssClass(...classNames) {
         this.element.classList.add(...classNames);
         return this;
     }
 
+    /** @param {...string} classNames */
     removeCssClass(...classNames) {
         this.element.classList.remove(...classNames);
+        return this;
+    }
+
+    removeAllCssClasses() {
+        this.element.removeAttribute('class');
+        return this;
+    }
+
+    /** 
+     * @param {string} oldClassName
+     * @param {string} newClassName
+     */
+    replaceCssClass(oldClassName, newClassName) {
+        this.element.classList.replace(oldClassName, newClassName);
+        return this;
+    }
+
+    /** 
+     * @param {string} className
+     * @param {boolean} condition add if true, remove if false
+     */
+    toogleCssClass(className, condition) {
+        this.element.classList.toggle(className, condition);
         return this;
     }
 

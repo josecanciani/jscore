@@ -1,7 +1,7 @@
 import { Emitter } from '../proto/emitter.js';
 import { Builder, Modifier, ShadowElement } from './element.js';
 
-let ChildManager = class {
+const ChildManager = class {
     /**
      * This class has all the logic to deal with the life-cycle of the children of a node
      * @param {Component} component
@@ -58,7 +58,7 @@ let ChildManager = class {
     }
 };
 
-let DomManager = class {
+const DomManager = class {
     /**
      * This class has all the logic to deal with the life-cycle of the children of a node
      * @param {Component} component
@@ -107,6 +107,10 @@ let DomManager = class {
         this._component.afterRender();
     }
 
+    isRendered() {
+        return !!this._domNode;
+    }
+
     /**
      * @param {Builder} builder
      */
@@ -130,7 +134,7 @@ let DomManager = class {
      * @returns {HTMLElement}
      */
     getDomNode() {
-        if (!this._domNode) {
+        if (!this.isRendered()) {
             throw new Error('cannotGetDomNodeBeforeRendering');
         }
         if (this.isShadowElement()) {
@@ -207,7 +211,7 @@ export const Component = class extends Emitter {
      * Use this method to do things after the element added to the DOM
      */
     afterRender() {
-        // this is here and not in _domManager so that dev can choose whether to call children's afterRender before or after this node
+        // this is here and not in _domManager so that dev can choose whether to call children's afterRender before or after this component
         this._childManager.getAllChildren().forEach((child) => child.afterRender());
     }
 
@@ -337,14 +341,81 @@ export const Component = class extends Emitter {
 
 
 export const BaseDomElement = class extends Component {
+    constructor() {
+        super();
+        this._classNamesBuffer = [];
+    }
+
+    /** @param {...string} classNames */
     addCssClass(...classNames) {
-        this._classNames = classNames;
+        if (this._domManager.isRendered()) {
+            this.$(this.getDomNode()).addCssClass(...classNames);
+        } else {
+            for (const className of classNames) {
+                const index = array.indexOf(className);
+                if (index === -1) {
+                    this._classNamesBuffer.push(className);
+                }
+            }
+        }
+        return this;
+    }
+
+    /** @param {...string} classNames */
+    removeCssClass(...classNames) {
+        if (this._domManager.isRendered()) {
+            this.$(this.getDomNode()).removeCssClass(...classNames);
+        } else {
+            for (const className of classNames) {
+                const index = array.indexOf(className);
+                if (index !== -1) {
+                    this._classNamesBuffer.splice(index, 1);
+                }
+            }
+        }
+        return this;
+    }
+
+    removeAllCssClasses() {
+        if (this._domManager.isRendered()) {
+            this.$(this.getDomNode()).removeAllCssClasses();
+        } else {
+            this._classNamesBuffer = [];
+        }
+        return this;
+    }
+
+    /** 
+     * @param {string} oldClassName
+     * @param {string} newClassName
+     */
+    replaceCssClass(oldClassName, newClassName) {
+        this.removeCssClass(oldClassName);
+        this.addCssClass(newClassName);
+        return this;
+    }
+
+    /** 
+     * @param {string} className
+     * @param {boolean} condition add if true, remove if false
+     */
+    toogleCssClass(className, condition) {
+        if (this._domManager.isRendered()) {
+            this.$(this.getDomNode()).toogleCssClass(className, condition);
+        } else {
+            if (condition) {
+                this.addCssClass(className);
+            } else {
+                this.removeCssClass(className);
+            }
+        }
         return this;
     }
 
     beforeRender() {
-        if (this._classNames) {
-            this.$(this.getDomNode()).addCssClass(...this._classNames);
+        if (this._classNamesBuffer) {
+            this.$(this.getDomNode()).addCssClass(...this._classNamesBuffer);
+            delete this._classNamesBuffer;
         }
     }
 };

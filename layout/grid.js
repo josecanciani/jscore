@@ -1,30 +1,19 @@
 import { Component } from '../dom/component.js';
 import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap-4-grid@3.4.0/css/grid.min.css' assert { type: 'css' };
 
+/**
+ * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
+ * Defaults to className  "container-fluid")
+ */
 export let Grid = class extends Component {
-    /**
-     * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
-     * @param {String} mainClass Bootstrap classname (defaults to "container-fluid")
-     */
-    constructor(cssClassName) {
+    /** @param  {...Row} rows */
+    constructor(...rows) {
         super();
-        this.rows = [];
-        this.className = cssClassName || 'container-fluid';
+        this.rows = rows;
     }
 
     createDomNode() {
-        return this.el('div')
-            .addCssSheet(sheet)
-            .addCssClass(this.className);
-    }
-
-    /**
-     * @param  {...Row} rows
-     * @returns {this}
-     */
-    addRows(...rows) {
-        this.rows = rows;
-        return this;
+        return this.el('div').addCssSheet(sheet).addCssClass('container-fluid');
     }
 
     beforeRender() {
@@ -32,27 +21,25 @@ export let Grid = class extends Component {
     }
 };
 
-export let Row = class extends Component {
-    /**
-     * @param {String} classNames Bootstrap classname plus your own (default to "row")
-     */
-    constructor(...classNames) {
-        super();
-        this.columns = [];
-        this.classNames = classNames.length ? classNames : ['row'];
+/** This grid assumes the grid.css is already loaded */
+export let GlobalGrid = class extends Grid {
+    createDomNode() {
+        return this.el('div').addCssClass('container-fluid');
     }
+}
 
-    /**
-     * @param  {...Column} columns
-     * @returns {this}
-     */
-    addColumns(...columns) {
+/**
+ * Bootstrap Row, defaults className "row"
+ */
+export let Row = class extends Component {
+    /** @param  {...Column} columns */
+    constructor(...columns) {
+        super();
         this.columns = columns;
-        return this;
     }
 
     createDomNode() {
-        return this.el('div').addCssClass(...this.classNames);
+        return this.el('div').addCssClass('row');
     }
 
     beforeRender() {
@@ -60,28 +47,16 @@ export let Row = class extends Component {
     }
 };
 
+/** Bootstrap grid Column, cssClass defaults to "col-md-auto" */
 export let Column = class extends Component {
-    /**
-     * @param {String} classNames Bootstrap class name and your own (defaults to "col-md-auto")
-     */
-    constructor(...classNames) {
+    /** @param {...Row} rows */
+    constructor(...rows) {
         super();
-        this.rows = [];
-        this.classNames = classNames.length ? classNames : ['col-md-auto'];
-    }
-
-    /**
-     *
-     * @param  {...Row} rows
-     * @returns {this}
-     */
-    addRows(...rows) {
         this.rows = rows;
-        return this;
     }
 
     createDomNode() {
-        return this.el('div').addCssClass(...this.classNames);
+        return this.el('div').addCssClass('col-md-auto');
     }
 
     beforeRender() {
@@ -89,22 +64,19 @@ export let Column = class extends Component {
     }
 };
 
+/** Bootstrap column modified to insert jscore Components (className default to "col-md-auto") */
 export let Content = class extends Component {
-    /**
-     * @param {NodeNde} child
-     * @param {String} classNames Bootstrap class name or your own (default to "col-md-auto")
-     */
-    constructor(child, ...classNames) {
+    /** @param {...Component} children */
+    constructor(...children) {
         super();
-        this.child = child;
-        this.classNames = classNames.length ? classNames : ['col-md-auto'];
+        this.children = children;
     }
 
     createDomNode() {
-        return this.el('div').addCssClass(...this.classNames);
+        return this.el('div').addCssClass('col-md-auto');
     }
 
     beforeRender() {
-        this.append(this.getDomNode(), this.child);
+        this.append(this.getDomNode(), ...this.children);
     }
 };
