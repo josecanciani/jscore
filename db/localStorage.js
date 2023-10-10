@@ -4,22 +4,23 @@
  * @extends {LocalStorage}
 */
 export let LocalStorageWrapper = class {
-    constructor(localStorage) {
+    constructor(localStorage, prefix) {
         this.localStorage = localStorage;
+        this.prefix = prefix || '';
     }
 
-    setItem(name, value) {
-        this.localStorage.setItem(name, JSON.stringify(value));
+    setItem(keyName, value) {
+        this.localStorage.setItem(this.prefix + keyName, JSON.stringify(value));
     }
 
-    getItem(name) {
-        const value = this.localStorage.getItem(name);
+    getItem(keyName) {
+        const value = this.localStorage.getItem(this.prefix + keyName);
         try {
             return value === null ? null : JSON.parse(value);
         } catch (err) {
             setTimeout(
                 () => {
-                    throw new Error('cannotParseLocalStorage: ' + name + ' => ' + String(value));
+                    throw new Error('cannotParseLocalStorage: ' + keyName + ' => ' + String(value));
                 },
                 10
             );
@@ -27,8 +28,8 @@ export let LocalStorageWrapper = class {
         }
     }
 
-    removeItem(name) {
-        return this.localStorage.removeItem(name);
+    removeItem(keyName) {
+        return this.localStorage.removeItem(this.prefix + keyName);
     }
 
     /**
@@ -36,6 +37,6 @@ export let LocalStorageWrapper = class {
      * @returns {Array}
      */
     getAllKeys() {
-        return Object.keys(this.localStorage);
+        return Object.keys(this.localStorage).filter((keyName) => this.prefix === '' || keyName.startsWith(this.prefix));
     }
 };
