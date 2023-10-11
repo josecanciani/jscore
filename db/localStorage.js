@@ -6,7 +6,7 @@
 export let LocalStorageWrapper = class {
     constructor(localStorage, prefix) {
         this.localStorage = localStorage;
-        this.prefix = prefix || '';
+        this.prefix = 'jscore_' + (prefix || '');
     }
 
     setItem(keyName, value) {
@@ -37,6 +37,6 @@ export let LocalStorageWrapper = class {
      * @returns {Array}
      */
     getAllKeys() {
-        return Object.keys(this.localStorage).filter((keyName) => this.prefix === '' || keyName.startsWith(this.prefix));
+        return Object.keys(this.localStorage).filter((keyName) => keyName.startsWith(this.prefix)).map((keyName) => keyName.substring(this.prefix.length));
     }
 };
