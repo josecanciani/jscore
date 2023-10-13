@@ -143,22 +143,8 @@ export const Console = class extends Component {
         super.uninit();
     }
 
-    _clean() {
-        let messagesToAppend = this.buffer.length;
-        let currentMessages = this.getAllChildren().filter((child) => child instanceof Message);
-        let totalCount = messagesToAppend + currentMessages.length;
-        for (let i = 0; i < currentMessages.length; ++i) {
-            let message = currentMessages[i];
-            if (message.getTtl() < totalCount) {
-                message.uninit();
-                totalCount--;
-            }
-        }
-    }
-
     _appendLogs() {
         delete this._timeout;
-        this._clean();
         const container = this.getDomNode().querySelector('div.messages');
         this.buffer.forEach((message) => {
             this.appendBefore(container, container.firstChild, message);
