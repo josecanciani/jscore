@@ -80,19 +80,17 @@ export let JsonRequest = class {
      * @param {processLineEndCallback} responseCallback - In case you need the fetch response object for anything else (headers) use this callback
      */
     async processLine(callback, endCallback, responseCallback) {
-        const utf8Decoder = new TextDecoder("utf-8");
+        const utf8Decoder = new TextDecoder('utf-8');
         const response = await this.doGet();
         if (responseCallback) {
             responseCallback(response);
         }
         const reader = response.body.getReader();
         let { value: chunk, done: readerDone } = await reader.read();
-        chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : "";
-
+        chunk = chunk ? utf8Decoder.decode(chunk, { stream: true }) : '';
         const re = /\r\n|\n|\r/gm;
         let startIndex = 0;
         let linesFound = 0;
-
         for (;;) {
             const result = re.exec(chunk);
             if (!result) {
@@ -100,8 +98,8 @@ export let JsonRequest = class {
                     break;
                 }
                 let remainder = chunk.substr(startIndex);
-                ({ value: chunk, done: readerDone } = await reader.read());
-                chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : "");
+                { value: chunk, done: readerDone } = await reader.read();
+                chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : '');
                 startIndex = re.lastIndex = 0;
                 continue;
             }
@@ -111,7 +109,7 @@ export let JsonRequest = class {
         }
         if (startIndex < chunk.length) {
             // last line didn't end in a newline char
-            linesFound++
+            linesFound++;
             await callback(chunk.substr(startIndex), linesFound);
         }
         await endCallback(linesFound)
