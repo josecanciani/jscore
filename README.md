@@ -227,7 +227,7 @@ The `$$` method is a shortcut to `this.$(this.$query(path))`.
 The engine supports Constructible StyleSheets. When you `addCssSheet()` using the `Builder`, a Shadow Element will be created automatically, and the style will be appended to it.
 
 ```javascript
-import sheet from './myModule.css' assert { type: 'css' };
+import sheet from './myModule.css' with { type: 'css' };
 
 class MyComponent extends Component {
     createDomNode() {

@@ -12,7 +12,7 @@
         <script type="module">
             import { App } from './app.js';
             import { Console } from '../debug/console.js';
-            import appSheet from './app.css' assert { type: 'css' };
+            import appSheet from './app.css' with { type: 'css' };
 
             (new App(appSheet, new Console())).render();
 

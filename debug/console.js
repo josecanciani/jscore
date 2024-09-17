@@ -1,6 +1,6 @@
 import { Component } from '../dom/component.js';
 import { SimpleNode } from '../dom/simpleNode.js';
-import sheet from './console.css' assert { type: 'css' };
+import sheet from './console.css' with { type: 'css' };
 
 /**
  * Default Message TTL, meassure in number of new messages before removing it from the view

@@ -1,5 +1,5 @@
 import { Component } from '../dom/component.js';
-import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap-4-grid@3.4.0/css/grid.min.css' assert { type: 'css' };
+import sheet from 'https://cdn.jsdelivr.net/npm/bootstrap-4-grid@3.4.0/css/grid.min.css' with { type: 'css' };
 
 /**
  * A Bootstrap Grid wrapper https://getbootstrap.com/docs/4.0/layout/grid/
