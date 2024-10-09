@@ -98,7 +98,9 @@ export let JsonRequest = class {
                     break;
                 }
                 let remainder = chunk.substr(startIndex);
-                { value: chunk, done: readerDone } = await reader.read();
+                const part = await reader.read();
+                chunk = part.value;
+                readerDone = part.done;
                 chunk = remainder + (chunk ? utf8Decoder.decode(chunk, { stream: true }) : '');
                 startIndex = re.lastIndex = 0;
                 continue;
